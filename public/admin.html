@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>إدارة متجرك</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css" />
+<script>
+  tailwind.config = {
+    theme: { extend: { fontFamily: { sans: ['Almarai', 'sans-serif'], display: ['Lalezar', 'sans-serif'] },
+      colors: { ink: '#17241F', forest: '#1E6F54', terracotta: '#2F6690', gold: '#C9A227', sand: '#FAF3E6' } } }
+  }
+</script>
+</head>
+<body class="font-sans bg-sand text-ink min-h-screen">
+
+  <!-- شاشات المصادقة الحساب والتسجيل -->
+  <div id="authScreen" class="min-h-screen flex items-center justify-center px-4 py-8">
+
+    <!-- 1. شاشة تسجيل الدخول -->
+    <div id="loginCard" class="bg-white border-2 border-ink rounded-2xl p-8 shadow-lg w-full max-w-sm space-y-4">
+      <div class="text-center mb-2">
+        <h1 class="font-display text-2xl mb-1">تسجيل الدخول إلى متجرك</h1>
+        <p class="text-xs text-ink/60 font-bold">أدخل بيانات صاحب المتجر لإدارة المبيعات والمنتجات</p>
+      </div>
+      <form id="loginForm" class="space-y-3">
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">اسم المستخدم أو البريد الإلكتروني</label>
+          <input required name="username" placeholder="مثال: merchant@store.com" class="field w-full px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">كلمة السر</label>
+          <input required name="password" type="password" placeholder="••••••••" class="field w-full px-3 py-2 text-sm" />
+        </div>
+        <div class="flex justify-end">
+          <button type="button" id="toForgotBtn" class="text-xs text-forest font-bold hover:underline">نسيت كلمة السر؟</button>
+        </div>
+        <p id="loginError" class="text-terracotta text-sm font-bold hidden"></p>
+        <button class="btn-primary w-full py-2.5 rounded-lg font-extrabold text-sm">تسجيل الدخول إلى متجرك</button>
+      </form>
+      <div class="border-t border-ink/10 pt-4 text-center">
+        <p class="text-xs text-ink/60 mb-2 font-bold">تاجر جديد؟ أنشئ متجرك الآن</p>
+        <button type="button" id="toRegisterBtn" class="btn-outline w-full py-2 rounded-lg text-xs font-extrabold">أنشئ متجرك الإلكتروني 🚀</button>
+      </div>
+    </div>
+
+    <!-- 2. شاشة التسجيل (تاجر جديد) -->
+    <div id="registerCard" class="bg-white border-2 border-ink rounded-2xl p-8 shadow-lg w-full max-w-md space-y-4 hidden">
+      <div class="text-center mb-2">
+        <h1 class="font-display text-2xl mb-1">أنشئ متجرك الإلكتروني</h1>
+        <p class="text-xs text-ink/60 font-bold">ابدأ حسابك التجريبي في لحظات واستقبل طلبات زبائنك</p>
+      </div>
+      <form id="registerForm" class="space-y-3">
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">اسم المتجر الإلكتروني</label>
+          <input required name="store_name" placeholder="مثال: متجر الملابس الأنيقة" class="field w-full px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">اسم المستخدم (للدخول)</label>
+          <input required name="username" placeholder="مثال: store_owner" class="field w-full px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">البريد الإلكتروني الخاص بك</label>
+          <input required name="email" type="email" placeholder="مثال: owner@domain.com" class="field w-full px-3 py-2 text-sm" dir="ltr" />
+          <span class="text-[11px] text-ink/40">سيتم إرسال رمز التحقق (OTP) إلى هذا البريد مباشرةً</span>
+        </div>
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">كلمة السر</label>
+          <input required name="password" type="password" placeholder="6 أحرف على الأقل" class="field w-full px-3 py-2 text-sm" />
+        </div>
+        <p id="registerError" class="text-terracotta text-sm font-bold hidden"></p>
+        <button class="btn-primary w-full py-2.5 rounded-lg font-extrabold text-sm">إنشاء المتجر وإرسال رمز التحقق ✉️</button>
+      </form>
+      <div class="border-t border-ink/10 pt-3 text-center">
+        <button type="button" id="toLoginFromRegisterBtn" class="text-xs text-forest font-bold hover:underline">لديك متجر بالفعل؟ تسجيل الدخول</button>
+      </div>
+    </div>
+
+    <!-- 3. شاشة إدخال رمز التحقق OTP -->
+    <div id="otpCard" class="bg-white border-2 border-ink rounded-2xl p-8 shadow-lg w-full max-w-sm space-y-4 hidden">
+      <div class="text-center mb-2">
+        <h1 class="font-display text-2xl mb-1">📩 تأكيد بريد المتجر</h1>
+        <p class="text-xs text-ink/60 font-bold">أدخل رمز التحقق (OTP) المكون من 6 أرقام المرسل إلى بريدك الإلكتروني:</p>
+        <p id="otpEmailTarget" class="text-xs text-forest font-extrabold mt-1 text-center" dir="ltr"></p>
+      </div>
+      <form id="otpForm" class="space-y-4">
+        <input type="hidden" name="email" id="otpFormEmail" />
+        <input type="hidden" name="type" id="otpFormType" value="register" />
+        <div>
+          <input required name="code" type="text" maxlength="6" pattern="[0-9]{6}" placeholder="123456" class="field w-full px-3 py-3 text-center text-2xl font-mono tracking-[0.4em]" dir="ltr" />
+        </div>
+        <p id="otpError" class="text-terracotta text-sm font-bold hidden"></p>
+        <button class="btn-primary w-full py-2.5 rounded-lg font-extrabold text-sm">تأكيد التفعيل وفتح المتجر ✨</button>
+      </form>
+      <div class="flex items-center justify-between border-t border-ink/10 pt-3 text-xs">
+        <button type="button" id="resendOtpBtn" class="text-forest font-bold hover:underline">إعادة إرسال الرمز 🔄</button>
+        <button type="button" id="backToLoginFromOtp" class="text-ink/50 font-bold hover:underline">إلغاء والعودة</button>
+      </div>
+    </div>
+
+    <!-- 4. شاشة استعادة كلمة السر -->
+    <div id="forgotCard" class="bg-white border-2 border-ink rounded-2xl p-8 shadow-lg w-full max-w-sm space-y-4 hidden">
+      <div class="text-center mb-2">
+        <h1 class="font-display text-2xl mb-1">🔑 استعادة كلمة السر</h1>
+        <p class="text-xs text-ink/60 font-bold">أدخل بريد حساب المتجر لإرسال رمز التحقق</p>
+      </div>
+      
+      <!-- الخطوة 1: طلب الرمز -->
+      <form id="forgotForm" class="space-y-3">
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">البريد الإلكتروني للمتجر</label>
+          <input required name="email" type="email" placeholder="owner@domain.com" class="field w-full px-3 py-2 text-sm" dir="ltr" />
+        </div>
+        <p id="forgotError" class="text-terracotta text-sm font-bold hidden"></p>
+        <button class="btn-primary w-full py-2.5 rounded-lg font-extrabold text-sm">إرسال رمز التحقق 📩</button>
+      </form>
+
+      <!-- الخطوة 2: تغيير كلمة السر عند وجود الرمز -->
+      <form id="resetPasswordForm" class="space-y-3 hidden">
+        <input type="hidden" name="email" id="resetEmail" />
+        <p class="text-xs text-forest font-bold text-center">أدخل الرمز المرسل لإيميلك وكلمة السر الجديدة:</p>
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">رمز التحقق (6 أرقام)</label>
+          <input required name="code" type="text" maxlength="6" placeholder="123456" class="field w-full px-3 py-2 text-center text-lg font-mono tracking-widest" dir="ltr" />
+        </div>
+        <div>
+          <label class="text-xs font-bold block mb-1 text-ink/70">كلمة السر الجديدة</label>
+          <input required name="new_password" type="password" placeholder="6 أحرف على الأقل" class="field w-full px-3 py-2 text-sm" />
+        </div>
+        <p id="resetError" class="text-terracotta text-sm font-bold hidden"></p>
+        <button class="btn-primary w-full py-2.5 rounded-lg font-extrabold text-sm">حفظ كلمة السر الجديدة والدخول</button>
+      </form>
+
+      <div class="border-t border-ink/10 pt-3 text-center">
+        <button type="button" id="toLoginFromForgotBtn" class="text-xs text-forest font-bold hover:underline">العودة لتسجيل الدخول</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- لوحة التحكم -->
+  <div id="dashboard" class="hidden">
+    <header class="bg-white border-b-2 border-ink sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <h1 class="font-display text-xl">🛠️ إدارة متجرك</h1>
+        <div class="flex items-center gap-3">
+          <a href="/" target="_blank" class="text-sm text-ink/60 hover:text-forest font-bold">عرض المتجر ↗</a>
+          <button id="logoutBtn" class="btn-outline text-sm px-3 py-1.5 rounded-lg font-bold">خروج</button>
+          <button id="deleteAccountBtn" class="text-xs bg-red-100 hover:bg-red-200 text-terracotta border border-terracotta/30 px-3 py-1.5 rounded-lg font-extrabold">🗑️ حذف الحساب نهائياً</button>
+        </div>
+      </div>
+      <div class="max-w-7xl mx-auto px-4 flex gap-1 border-t overflow-x-auto no-scrollbar">
+        <button data-tab="products" class="admin-tab-btn active-tab px-4 py-2 text-sm font-bold border-b-2 border-transparent whitespace-nowrap">المنتجات</button>
+        <button data-tab="categories" class="admin-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-transparent whitespace-nowrap">التصنيفات</button>
+        <button data-tab="orders" class="admin-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-transparent whitespace-nowrap">الطلبات</button>
+        <button data-tab="profit" class="admin-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-transparent whitespace-nowrap">الأرباح (30 يوم)</button>
+        <button data-tab="delivery" class="admin-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-transparent whitespace-nowrap">أسعار التوصيل</button>
+        <button data-tab="social" class="admin-tab-btn px-4 py-2 text-sm font-bold border-b-2 border-transparent whitespace-nowrap">الربط مع السوشيال ميديا</button>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+
+      <!-- تبويب المنتجات -->
+      <section id="tab-products" class="tab-content space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="font-display text-xl">المنتجات</h2>
+          <button id="newProductBtn" class="btn-primary px-4 py-2 rounded-lg text-sm font-extrabold">+ منتج جديد</button>
+        </div>
+        <div id="productsTable" class="bg-white rounded-2xl border-2 border-ink overflow-x-auto"></div>
+      </section>
+
+      <!-- تبويب التصنيفات -->
+      <section id="tab-categories" class="tab-content hidden space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="font-display text-xl">التصنيفات</h2>
+          <button id="addRootCategoryBtn" class="btn-primary px-4 py-2 rounded-lg text-sm font-extrabold">+ إضافة تصنيف رئيسي</button>
+        </div>
+        <p class="text-sm text-ink/60">اضغط على زر <span class="font-extrabold">+</span> بجانب أي تصنيف لإضافة تصنيف فرعي بداخله، بأي عدد من المستويات.</p>
+        <div id="categoryTree" class="bg-white rounded-2xl border-2 border-ink p-4 space-y-2"></div>
+      </section>
+
+      <!-- تبويب الطلبات -->
+      <section id="tab-orders" class="tab-content hidden space-y-4">
+        <h2 class="font-display text-xl">الطلبات</h2>
+
+        <!-- ملخص الأرباح -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div class="bg-white border-2 border-ink rounded-2xl p-4">
+            <p class="text-xs text-ink/50 font-bold mb-1">مبيعات الطلبات المسلَّمة</p>
+            <p id="statSales" class="font-display text-2xl text-forest-dark">0 دج</p>
+          </div>
+          <div class="bg-white border-2 border-ink rounded-2xl p-4">
+            <p class="text-xs text-ink/50 font-bold mb-1">تكلفة الشحن المخصومة</p>
+            <p id="statShipping" class="font-display text-2xl text-terracotta">0 دج</p>
+            <p id="statCancelledAfterShipping" class="text-[11px] text-ink/40 mt-1"></p>
+          </div>
+          <div class="bg-white border-2 border-ink rounded-2xl p-4 col-span-2 md:col-span-1">
+            <p class="text-xs text-ink/50 font-bold mb-1">صافي الربح</p>
+            <p id="statNet" class="font-display text-2xl">0 دج</p>
+          </div>
+        </div>
+        <p class="text-xs text-ink/40">
+          المبيعات تُحتسب فقط من الطلبات التي وصلت لحالة "تم التسليم" (نظام الدفع عند الاستلام). تكلفة الشحن تُخصم بمجرد أن يصبح الطلب "قيد التوصيل" لأن تكلفة الناقل تُدفع بمجرد الشحن.
+        </p>
+
+        <!-- فلترة: الطلبات الحالية / الأرشيف -->
+        <div class="flex gap-2">
+          <button data-orderfilter="active" class="order-filter-btn cat-btn active-cat px-4 py-1.5 rounded-full text-sm">الطلبات الحالية</button>
+          <button data-orderfilter="delivered" class="order-filter-btn cat-btn px-4 py-1.5 rounded-full text-sm">الأرشيف (المسلَّمة)</button>
+          <button data-orderfilter="cancelled" class="order-filter-btn cat-btn px-4 py-1.5 rounded-full text-sm">الملغاة</button>
+          <button data-orderfilter="all" class="order-filter-btn cat-btn px-4 py-1.5 rounded-full text-sm">الكل</button>
+        </div>
+
+        <div id="ordersTable" class="bg-white rounded-2xl border-2 border-ink overflow-x-auto"></div>
+      </section>
+
+      <!-- تبويب الأرباح 30 يوم -->
+      <section id="tab-profit" class="tab-content hidden space-y-4">
+        <h2 class="font-display text-xl">الأرباح والخسائر - آخر 30 يومًا</h2>
+        <p class="text-sm text-ink/60">يُحسب الربح هنا من الفرق الحقيقي بين سعر البيع وسعر الشراء المسجَّل وقت كل عملية بيع (وليس السعر الحالي)، لكل الطلبات "تم التسليم" خلال آخر 30 يومًا، مطروحًا منه تكلفة الشحن المدفوعة فعليًا خلال نفس الفترة.</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-white border-2 border-ink rounded-2xl p-4">
+            <p class="text-xs text-ink/50 font-bold mb-1">إجمالي المبيعات</p>
+            <p id="profitRevenue" class="font-display text-xl text-forest-dark">0 دج</p>
+          </div>
+          <div class="bg-white border-2 border-ink rounded-2xl p-4">
+            <p class="text-xs text-ink/50 font-bold mb-1">تكلفة البضاعة المباعة</p>
+            <p id="profitCogs" class="font-display text-xl text-terracotta">0 دج</p>
+          </div>
+          <div class="bg-white border-2 border-ink rounded-2xl p-4">
+            <p class="text-xs text-ink/50 font-bold mb-1">تكلفة الشحن</p>
+            <p id="profitShipping" class="font-display text-xl text-terracotta">0 دج</p>
+          </div>
+          <div class="bg-white border-2 border-ink rounded-2xl p-4">
+            <p class="text-xs text-ink/50 font-bold mb-1">صافي الربح</p>
+            <p id="profitNet" class="font-display text-xl">0 دج</p>
+          </div>
+        </div>
+        <p id="profitMeta" class="text-xs text-ink/40"></p>
+        <div>
+          <h3 class="font-display text-lg mb-2">الأكثر ربحًا (أعلى 10 منتجات)</h3>
+          <div id="profitTopProducts" class="bg-white rounded-2xl border-2 border-ink overflow-x-auto"></div>
+        </div>
+      </section>
+
+      <!-- تبويب أسعار التوصيل -->
+      <section id="tab-delivery" class="tab-content hidden space-y-4">
+        <div class="flex justify-between items-center flex-wrap gap-2">
+          <h2 class="font-display text-xl">أسعار التوصيل حسب الولاية</h2>
+          <button id="saveDeliveryBtn" class="btn-primary px-4 py-2 rounded-lg text-sm font-extrabold">حفظ كل الأسعار</button>
+        </div>
+        <p class="text-sm text-ink/60">حدد سعر التوصيل لكل ولاية من ولايات الوطن الـ 69، للتوصيل إلى المنزل وللتوصيل إلى مكتب البريد. اترك 0 إذا كانت الولاية غير مغطاة حاليًا.</p>
+        <input id="deliverySearch" type="text" placeholder="ابحث عن ولاية..." class="field w-full max-w-xs px-3 py-2 text-sm" />
+        <div id="deliveryTable" class="bg-white rounded-2xl border-2 border-ink overflow-x-auto"></div>
+      </section>
+
+      <!-- تبويب الربط مع السوشيال ميديا -->
+      <section id="tab-social" class="tab-content hidden space-y-4">
+        <h2 class="font-display text-xl">روابط التواصل الاجتماعي</h2>
+        <p class="text-sm text-ink/60">هذه الروابط تظهر كأيقونات في أعلى وأسفل المتجر وفي زر "تواصل معنا" بصفحة كل منتج. اترك أي حقل فارغًا لإخفاء أيقونته تلقائيًا.</p>
+        <form id="socialForm" class="bg-white rounded-2xl border-2 border-ink p-5 space-y-3">
+          <div>
+            <label class="text-sm font-bold block mb-1">📱 واتساب (رقم دولي بدون + أو رابط wa.me كامل)</label>
+            <input name="social_whatsapp" placeholder="مثال: 213555000000 أو https://wa.me/213555000000" class="field w-full px-3 py-2 text-sm" dir="ltr" />
+          </div>
+          <div>
+            <label class="text-sm font-bold block mb-1">📸 انستغرام (رابط كامل)</label>
+            <input name="social_instagram" placeholder="https://instagram.com/yourstore" class="field w-full px-3 py-2 text-sm" dir="ltr" />
+          </div>
+          <div>
+            <label class="text-sm font-bold block mb-1">📘 فيسبوك (رابط كامل)</label>
+            <input name="social_facebook" placeholder="https://facebook.com/yourstore" class="field w-full px-3 py-2 text-sm" dir="ltr" />
+          </div>
+          <div>
+            <label class="text-sm font-bold block mb-1">🎵 تيك توك (رابط كامل)</label>
+            <input name="social_tiktok" placeholder="https://tiktok.com/@yourstore" class="field w-full px-3 py-2 text-sm" dir="ltr" />
+          </div>
+          <div>
+            <label class="text-sm font-bold block mb-1">✈️ تلغرام (رابط كامل)</label>
+            <input name="social_telegram" placeholder="https://t.me/yourstore" class="field w-full px-3 py-2 text-sm" dir="ltr" />
+          </div>
+          <p id="socialFormError" class="text-terracotta text-sm font-bold hidden"></p>
+          <button type="submit" class="btn-primary px-5 py-2 rounded-lg text-sm font-extrabold">حفظ روابط التواصل</button>
+        </form>
+
+        <h2 class="font-display text-xl pt-2">ربط المتجر بفيسبوك / انستغرام / تيك توك (كتالوج المنتجات)</h2>
+        <div class="bg-white rounded-2xl border-2 border-ink p-5 space-y-4 text-sm leading-7">
+          <p>
+            الطريقة الرسمية والآمنة لعرض منتجاتك في متاجر فيسبوك وانستغرام وتيك توك هي عبر
+            <b>ملف كتالوج (Product Feed)</b> يقرأه نظامهم تلقائيًا ويحدّثه بشكل دوري. لا يمكن لأي موقع "ينشر تلقائيًا"
+            في حسابك دون ربط حساب تجاري (Business Account) تملكه أنت والموافقة عليه من عندهم، وهذا خارج عن تحكم أي كود برمجي.
+          </p>
+          <div class="border-2 border-ink/20 rounded-xl p-4 bg-sand">
+            <p class="font-extrabold mb-2">1) فيسبوك وانستغرام (Meta Commerce Manager):</p>
+            <p>افتح Commerce Manager ← Catalog ← Add items ← Data feed، والصق رابط الكتالوج التالي واضبط التحديث التلقائي (يوميًا):</p>
+            <code id="fbFeedUrl" class="block bg-white border-2 border-ink/20 rounded-lg p-2 mt-2 text-xs break-all"></code>
+          </div>
+          <div class="border-2 border-ink/20 rounded-xl p-4 bg-sand">
+            <p class="font-extrabold mb-2">2) تيك توك شوب (TikTok Shop Seller Center):</p>
+            <p>من Seller Center ← Products ← Bulk Upload / Scheduled Feed، استخدم رابط ملف الـ CSV التالي:</p>
+            <code id="ttFeedUrl" class="block bg-white border-2 border-ink/20 rounded-lg p-2 mt-2 text-xs break-all"></code>
+          </div>
+          <p class="text-ink/50">
+            ملاحظة: يجب أن يكون الموقع منشورًا على نطاق (domain) حقيقي يدعم HTTPS حتى تستطيع فيسبوك وتيك توك الوصول لهذه الروابط وجلب الصور.
+          </p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- نافذة إضافة/تعديل منتج -->
+  <div id="productModal" class="fixed inset-0 bg-ink/40 hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <form id="productForm" class="bg-sand border-2 border-ink rounded-2xl w-full max-w-lg p-6 space-y-3 my-8" enctype="multipart/form-data">
+      <h3 id="productModalTitle" class="font-display text-xl mb-2">منتج جديد</h3>
+      <input type="hidden" name="id" />
+      <input required name="name" placeholder="اسم المنتج" class="field w-full px-3 py-2 text-sm" />
+      <textarea name="description" placeholder="الوصف" rows="3" class="field w-full px-3 py-2 text-sm"></textarea>
+      <div class="grid grid-cols-2 gap-3">
+        <input required name="price" type="number" step="0.01" min="0" placeholder="السعر" class="field w-full px-3 py-2 text-sm" />
+        <input name="compare_price" type="number" step="0.01" min="0" placeholder="السعر قبل الخصم (اختياري)" class="field w-full px-3 py-2 text-sm" />
+      </div>
+      <div class="grid grid-cols-2 gap-3" id="stockFieldsNew">
+        <input name="stock" type="number" min="0" placeholder="الكمية الابتدائية بالمخزون" class="field w-full px-3 py-2 text-sm" />
+        <input name="cost_price" type="number" step="0.01" min="0" placeholder="سعر الشراء للقطعة" class="field w-full px-3 py-2 text-sm" />
+      </div>
+      <label id="variantsToggleWrap" class="flex items-center gap-2 text-sm font-bold">
+        <input type="checkbox" id="hasVariantsCheckbox" /> لهذا المنتج مقاسات/أحجام مختلفة (مثال: أحذية 38-44، ملابس S-XXL، أو أي تسمية تريدها)
+      </label>
+      <div id="variantsBuilder" class="hidden space-y-2 bg-white/60 border border-ink/10 rounded-lg p-3">
+        <p class="text-xs text-ink/50">أضف كل مقاس/حجم باسمه الحر، مع كميته وسعر شرائه. ضع 0 بالكمية إن كان المقاس غير متوفر حاليًا.</p>
+        <div id="variantRows" class="space-y-2"></div>
+        <button type="button" id="addVariantRowBtn" class="text-forest font-extrabold text-xs">+ إضافة مقاس/حجم</button>
+      </div>
+      <div id="stockSummaryEdit" class="hidden bg-white/60 border border-ink/10 rounded-lg px-3 py-2 flex items-center justify-between text-sm">
+        <span class="font-bold">المخزون الحالي: <span id="stockSummaryValue">-</span> قطعة</span>
+        <button type="button" id="openRestockBtn" class="text-forest font-extrabold text-xs whitespace-nowrap">+ تزويد المخزون</button>
+      </div>
+      <div id="variantsEditPanel" class="hidden space-y-2 bg-white/60 border border-ink/10 rounded-lg p-3">
+        <p class="text-sm font-bold">المقاسات/الأحجام الحالية</p>
+        <div id="variantsEditList" class="space-y-2"></div>
+        <div class="border-t border-ink/10 pt-2 space-y-2">
+          <p class="text-xs text-ink/50">إضافة مقاس/حجم جديد:</p>
+          <div class="grid grid-cols-3 gap-2">
+            <input id="newVariantLabel" placeholder="مثال: 42" class="field px-2 py-1.5 text-xs" />
+            <input id="newVariantQty" type="number" min="0" placeholder="الكمية" class="field px-2 py-1.5 text-xs" />
+            <input id="newVariantCost" type="number" step="0.01" min="0" placeholder="سعر الشراء" class="field px-2 py-1.5 text-xs" />
+          </div>
+          <button type="button" id="addNewVariantBtn" class="text-forest font-extrabold text-xs">+ إضافة</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <input name="sku" placeholder="رمز المنتج SKU (اختياري)" class="field w-full px-3 py-2 text-sm" />
+      </div>
+      <select name="category_id" id="productCategorySelect" class="field w-full px-3 py-2 text-sm">
+        <option value="">بدون تصنيف</option>
+      </select>
+      <div>
+        <label class="text-sm text-ink/60 block mb-1">صور المنتج (حتى 6 صور)</label>
+        <input name="images" type="file" accept="image/*" multiple class="w-full text-sm" />
+      </div>
+      <label class="flex items-center gap-2 text-sm font-bold">
+        <input type="checkbox" name="is_active" checked /> منتج مفعّل وظاهر بالمتجر
+      </label>
+      <p id="productFormError" class="text-terracotta text-sm font-bold hidden"></p>
+      <div class="flex gap-2 pt-2">
+        <button type="button" id="closeProductModal" class="btn-outline flex-1 py-2 rounded-lg text-sm font-extrabold">إلغاء</button>
+        <button type="submit" class="btn-primary flex-1 py-2 rounded-lg text-sm font-extrabold">حفظ</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- نافذة تزويد المخزون: الطريقة الوحيدة لزيادة الكمية، وتطلب دومًا سعر الشراء -->
+  <div id="restockModal" class="fixed inset-0 bg-ink/40 hidden z-50 flex items-center justify-center p-4">
+    <form id="restockForm" class="bg-sand border-2 border-ink rounded-2xl w-full max-w-sm p-6 space-y-3">
+      <h3 class="font-display text-xl mb-2">تزويد المخزون</h3>
+      <p class="text-xs text-ink/50 font-bold" id="restockProductName"></p>
+      <div>
+        <label class="text-sm text-ink/60 block mb-1">الكمية المضافة</label>
+        <input required name="qty" type="number" min="1" placeholder="مثال: 10" class="field w-full px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label class="text-sm text-ink/60 block mb-1">كم اشتريت القطعة الواحدة؟ (سعر الشراء)</label>
+        <input required name="cost_price" type="number" step="0.01" min="0" placeholder="سعر الشراء للقطعة الواحدة" class="field w-full px-3 py-2 text-sm" />
+      </div>
+      <p class="text-xs text-ink/40">سيُحسب متوسط سعر الشراء تلقائيًا مع الكمية القديمة، فلا يضيع سعر الدفعة السابقة.</p>
+      <p id="restockFormError" class="text-terracotta text-sm font-bold hidden"></p>
+      <div class="flex gap-2 pt-2">
+        <button type="button" id="closeRestockModal" class="btn-outline flex-1 py-2 rounded-lg text-sm font-extrabold">إلغاء</button>
+        <button type="submit" class="btn-primary flex-1 py-2 rounded-lg text-sm font-extrabold">تأكيد التزويد</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- نافذة إضافة تصنيف (زر +) -->
+  <div id="categoryModal" class="fixed inset-0 bg-ink/40 hidden z-50 flex items-center justify-center p-4">
+    <form id="categoryForm" class="bg-sand border-2 border-ink rounded-2xl w-full max-w-sm p-6 space-y-3">
+      <h3 class="font-display text-xl mb-1" id="categoryModalTitle">إضافة تصنيف</h3>
+      <input type="hidden" name="parent_id" />
+      <input required name="name" placeholder="اسم التصنيف" class="field w-full px-3 py-2 text-sm" />
+      <p id="categoryFormError" class="text-terracotta text-sm font-bold hidden"></p>
+      <div class="flex gap-2 pt-2">
+        <button type="button" id="closeCategoryModal" class="btn-outline flex-1 py-2 rounded-lg text-sm font-extrabold">إلغاء</button>
+        <button type="submit" class="btn-primary flex-1 py-2 rounded-lg text-sm font-extrabold">إضافة</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="toast" class="hidden fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-lg z-[60] font-bold border-2 text-white"></div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
