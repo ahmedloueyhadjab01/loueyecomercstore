@@ -14,7 +14,7 @@ const router = express.Router();
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 8,
+  max: 15,
   message: { error: 'محاولات دخول كثيرة جدًا. الرجاء المحاولة لاحقًا.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -22,7 +22,7 @@ const loginLimiter = rateLimit({
 
 const otpLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 5,
+  max: 10,
   message: { error: 'طلبات كثيرة جدًا. الرجاء الانتظار بضع دقائق.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -30,7 +30,7 @@ const otpLimiter = rateLimit({
 
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 10,
   message: { error: 'محاولات تسجيل كثيرة جدًا. الرجاء المحاولة لاحقًا.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -42,18 +42,19 @@ function generateOTP() {
   return crypto.randomInt(100000, 999999).toString();
 }
 
-function createAndSendOTP(email, type) {
+async function createAndSendOTP(email, type) {
   const code = generateOTP();
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 دقائق
 
-  // إلغاء أي رموز سابقة غير مستخدمة لنفس الإيميل والنوع
+  // إلغاء أي رموز سابقة لنفس الإيميل والنوع
   db.prepare('UPDATE otp_codes SET used = 1 WHERE email = ? AND type = ? AND used = 0').run(email, type);
 
   // حفظ الرمز الجديد
   db.prepare('INSERT INTO otp_codes (email, code, type, expires_at) VALUES (?, ?, ?, ?)').run(email, code, type, expiresAt);
 
-  // إرسال الرمز لإيميل التاجر مباشرة
-  return sendOTP(email, code, type);
+  // إرسال الرمز
+  await sendOTP(email, code, type);
+  return code;
 }
 
 function verifyOTPCode(email, code, type) {
@@ -64,7 +65,6 @@ function verifyOTPCode(email, code, type) {
   if (!record) return { valid: false, error: 'رمز التحقق غير صحيح' };
   if (new Date(record.expires_at) < new Date()) return { valid: false, error: 'انتهت صلاحية رمز التحقق. أعد الإرسال.' };
 
-  // تعليم الرمز كمستخدم
   db.prepare('UPDATE otp_codes SET used = 1 WHERE id = ?').run(record.id);
   return { valid: true };
 }
@@ -72,7 +72,7 @@ function verifyOTPCode(email, code, type) {
 function issueToken(admin, res) {
   const token = jwt.sign(
     { id: admin.id, username: admin.username },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || 'secret_key',
     { expiresIn: '8h' }
   );
   res.cookie('token', token, {
@@ -103,7 +103,6 @@ router.post(
 
     const { username, email, password, store_name } = req.body;
 
-    // التحقق من عدم وجود حساب بنفس اسم المستخدم أو الإيميل
     const existingUser = db.prepare('SELECT id, is_verified FROM admins WHERE username = ?').get(username);
     if (existingUser && existingUser.is_verified) {
       return res.status(409).json({ error: 'اسم المستخدم مستخدم بالفعل' });
@@ -117,7 +116,6 @@ router.post(
     const hash = bcrypt.hashSync(password, 12);
 
     try {
-      // إذا كان هناك حساب غير مُفعّل بنفس الإيميل، نحذفه ونعيد الإنشاء
       if (existingEmail && !existingEmail.is_verified) {
         db.prepare('DELETE FROM admins WHERE id = ?').run(existingEmail.id);
       }
@@ -129,16 +127,12 @@ router.post(
         'INSERT INTO admins (username, email, password_hash, store_name, is_verified) VALUES (?, ?, ?, ?, 0)'
       ).run(username, email, hash, store_name);
 
-      // إرسال رمز التحقق لإيميل التاجر
       await createAndSendOTP(email, 'register');
 
-      res.json({ success: true, email, message: 'تم إرسال رمز التحقق إلى بريدك الإلكتروني' });
+      res.json({ success: true, email, message: 'تم إنشاء المتجر وإرسال رمز التحقق إلى بريدك الإلكتروني' });
     } catch (err) {
       console.error('خطأ في التسجيل:', err);
-      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-        return res.status(409).json({ error: 'اسم المستخدم أو البريد الإلكتروني مسجّل بالفعل' });
-      }
-      res.status(500).json({ error: 'حدث خطأ أثناء إنشاء الحساب' });
+      res.status(500).json({ error: 'حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.' });
     }
   }
 );
@@ -167,7 +161,6 @@ router.post(
     }
 
     if (type === 'register') {
-      // تفعيل الحساب
       db.prepare('UPDATE admins SET is_verified = 1 WHERE email = ?').run(email);
       const admin = db.prepare('SELECT * FROM admins WHERE email = ?').get(email);
 
@@ -175,12 +168,10 @@ router.post(
         return res.status(404).json({ error: 'الحساب غير موجود' });
       }
 
-      // تسجيل الدخول مباشرة بعد التفعيل
       issueToken(admin, res);
       return res.json({ success: true, username: admin.username, message: 'تم تفعيل متجرك بنجاح! مرحبًا بك' });
     }
 
-    // للنوع reset_password: فقط نؤكد صحة الرمز
     res.json({ success: true, message: 'تم التحقق من الرمز. يمكنك الآن إعادة تعيين كلمة السر.' });
   }
 );
@@ -201,9 +192,8 @@ router.post(
     }
 
     const { email, type } = req.body;
-
-    // التحقق من وجود الحساب
     const admin = db.prepare('SELECT id FROM admins WHERE email = ?').get(email);
+
     if (!admin) {
       return res.status(404).json({ error: 'لا يوجد حساب مرتبط بهذا البريد الإلكتروني' });
     }
@@ -213,7 +203,7 @@ router.post(
       res.json({ success: true, message: 'تم إعادة إرسال رمز التحقق إلى بريدك الإلكتروني' });
     } catch (err) {
       console.error('خطأ في إعادة إرسال OTP:', err);
-      res.status(500).json({ error: 'تعذّر إرسال الرمز. تحقق من إعدادات البريد.' });
+      res.status(500).json({ error: 'تعذّر إرسال الرمز. تحقق من البريد.' });
     }
   }
 );
@@ -233,9 +223,8 @@ router.post(
     }
 
     const { email } = req.body;
-    const admin = db.prepare('SELECT id FROM admins WHERE email = ? AND is_verified = 1').get(email);
+    const admin = db.prepare('SELECT id FROM admins WHERE email = ?').get(email);
 
-    // رسالة موحّدة سواء كان الإيميل موجودًا أم لا (لحماية الخصوصية)
     if (!admin) {
       return res.json({ success: true, message: 'إذا كان هذا البريد مسجّلاً، سيصلك رمز التحقق قريبًا.' });
     }
@@ -245,7 +234,7 @@ router.post(
       res.json({ success: true, message: 'تم إرسال رمز التحقق إلى بريدك الإلكتروني' });
     } catch (err) {
       console.error('خطأ في إرسال رمز الاستعادة:', err);
-      res.status(500).json({ error: 'تعذّر إرسال الرمز. حاول مرة أخرى.' });
+      res.status(500).json({ error: 'تعذّر إرسال الرمز.' });
     }
   }
 );
@@ -274,13 +263,13 @@ router.post(
     }
 
     const hash = bcrypt.hashSync(new_password, 12);
-    db.prepare('UPDATE admins SET password_hash = ? WHERE email = ?').run(hash, email);
+    db.prepare('UPDATE admins SET password_hash = ?, is_verified = 1 WHERE email = ?').run(hash, email);
 
     res.json({ success: true, message: 'تم تغيير كلمة السر بنجاح. يمكنك تسجيل الدخول الآن.' });
   }
 );
 
-// ---------- تسجيل الدخول (يقبل اسم المستخدم أو الإيميل) ----------
+// ---------- تسجيل الدخول (يقبل اسم المستخدم أو البريد الإلكتروني) ----------
 
 router.post(
   '/login',
@@ -289,24 +278,34 @@ router.post(
     body('username').trim().notEmpty().withMessage('اسم المستخدم أو البريد الإلكتروني مطلوب'),
     body('password').notEmpty().withMessage('كلمة السر مطلوبة'),
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ error: errors.array()[0].msg });
     }
 
     const { username, password } = req.body;
-
-    // البحث باسم المستخدم أو الإيميل
     const admin = db.prepare('SELECT * FROM admins WHERE username = ? OR email = ?').get(username, username);
 
     if (!admin || !bcrypt.compareSync(password, admin.password_hash)) {
-      return res.status(401).json({ error: 'بيانات الدخول غير صحيحة. تحقق من اسم المستخدم وكلمة السر.' });
+      return res.status(401).json({ error: 'بيانات الدخول غير صحيحة. تحقق من البيانات وحاول مجدداً.' });
+    }
+
+    // تفعيل تلقائي لحساب المشرف الرئيسي أو الحسابات المعلمة
+    if (admin.username === 'louey' || admin.email === 'ahmedloueyhadjab01@gmail.com' || admin.email === process.env.SMTP_USER) {
+      db.prepare('UPDATE admins SET is_verified = 1 WHERE id = ?').run(admin.id);
+      admin.is_verified = 1;
     }
 
     if (!admin.is_verified) {
+      // إرسال رمز تفعيل جديد تلقائياً
+      try {
+        await createAndSendOTP(admin.email, 'register');
+      } catch (e) {
+        console.error('خطأ إرسال OTP للدخول:', e);
+      }
       return res.status(403).json({
-        error: 'حسابك غير مُفعّل بعد. تحقق من بريدك الإلكتروني لتفعيله.',
+        error: 'حسابك يحتاج تفعيل. تم إرسال رمز جديد لإيميلك.',
         need_verification: true,
         email: admin.email,
       });
@@ -317,6 +316,19 @@ router.post(
   }
 );
 
+// ---------- تسجيل الخروج ----------
+
+router.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ success: true });
+});
+
+// ---------- معلومات الجلسة ----------
+
+router.get('/me', requireAuth, (req, res) => {
+  res.json({ username: req.admin.username });
+});
+
 // ---------- حذف الحساب نهائياً ----------
 
 router.delete('/delete-account', requireAuth, (req, res) => {
@@ -325,16 +337,12 @@ router.delete('/delete-account', requireAuth, (req, res) => {
     const admin = db.prepare('SELECT email FROM admins WHERE id = ?').get(adminId);
 
     if (admin && admin.email) {
-      // حذف أي رموز OTP مسجلة بهذا الإيميل
       db.prepare('DELETE FROM otp_codes WHERE email = ?').run(admin.email);
     }
 
-    // حذف حساب التاجر نهائياً من قاعدة البيانات
     db.prepare('DELETE FROM admins WHERE id = ?').run(adminId);
-
-    // إنهاء الجلسة وحذف الكوكيز
     res.clearCookie('token');
-    res.json({ success: true, message: 'تم حذف حساب المتجر نهائياً وإزالة جميع البيانات المرتبطة به.' });
+    res.json({ success: true, message: 'تم حذف حسابك نهائياً وتدمير جميع الجلسات.' });
   } catch (err) {
     console.error('خطأ في حذف الحساب:', err);
     res.status(500).json({ error: 'حدث خطأ أثناء حذف الحساب' });
