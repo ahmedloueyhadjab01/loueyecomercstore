@@ -131,6 +131,21 @@ const upload = {
       });
     };
   },
+  deleteFiles: async (urls) => {
+    if (!supabaseClient || !urls || !urls.length) return;
+    const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'uploads';
+    try {
+      const filenames = urls.map(url => {
+        const parts = url.split('/');
+        return parts[parts.length - 1];
+      }).filter(Boolean);
+      if (filenames.length > 0) {
+        await supabaseClient.storage.from(bucketName).remove(filenames);
+      }
+    } catch (err) {
+      console.warn('Failed to delete from Supabase:', err.message);
+    }
+  }
 };
 
 module.exports = upload;

@@ -573,10 +573,15 @@ router.delete('/:id/variants/:variantId', requireAuth, requireActiveSubscription
   if (!checkResourceOwnership(product.user_id, req, res)) return;
 
   const variant = await db.get('SELECT * FROM product_variants WHERE id = $1 AND product_id = $2', [req.params.variantId, req.params.id]);
-  if (!variant) return res.status(404).json({ error: 'المتغيّر غير موجود' });
+  if (!variant) return res.status(404).json({ error: 'الخيار غير موجود' });
   if (variant.stock > 0) {
-    return res.status(400).json({ error: 'لا يمكن حذف متغيّر مخزونه أكبر من صفر. زوّده إلى صفر أولًا أو عدّله يدويًا.' });
+    return res.status(400).json({ error: 'لا يمكن حذف خيار يمتلك مخزوناً. قم بتصفير المخزون أولاً.' });
   }
+  
+  if (variant.image) {
+    upload.deleteFiles([variant.image]);
+  }
+
   await db.query('DELETE FROM product_variants WHERE id = $1', [req.params.variantId]);
   const updated = await db.get('SELECT * FROM products WHERE id = $1', [req.params.id]);
   res.json(await serialize(updated));
@@ -587,7 +592,26 @@ router.delete('/:id', requireAuth, requireActiveSubscription, async (req, res) =
   const product = await db.get('SELECT * FROM products WHERE id = $1', [req.params.id]);
   if (!product) return res.status(404).json({ error: 'المنتج غير موجود' });
   if (!checkResourceOwnership(product.user_id, req, res)) return;
+  
+  let imagesToDelete = [];
+  if (product.image) imagesToDelete.push(product.image);
+  if (product.images && product.images.length > 0) {
+    if (typeof product.images === 'string') {
+      try { imagesToDelete.push(...JSON.parse(product.images)); } catch(e){}
+    } else {
+      imagesToDelete.push(...product.images);
+    }
+  }
+  
+  const variants = await db.all('SELECT image FROM product_variants WHERE product_id = $1', [product.id]);
+  variants.forEach(v => { if (v.image) imagesToDelete.push(v.image); });
+
   await db.query('DELETE FROM products WHERE id = $1', [req.params.id]);
+  
+  if (imagesToDelete.length > 0) {
+    upload.deleteFiles(imagesToDelete);
+  }
+  
   res.json({ success: true });
 });
 

@@ -135,7 +135,22 @@ function escapeHtmlSimple(str) {
 }
 
 async function loadProducts() {
-  
+  const grid = document.getElementById('productsGrid');
+  if (grid) {
+    grid.innerHTML = Array(8).fill(`
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col animate-pulse">
+        <div class="aspect-[4/5] bg-gray-200"></div>
+        <div class="p-4 flex flex-col gap-2">
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div class="mt-auto pt-2">
+            <div class="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div class="h-10 bg-gray-200 rounded-xl w-full"></div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
   const params = new URLSearchParams();
   if (CURRENT_STORE_ID) params.set('store_id', CURRENT_STORE_ID);
   if (CURRENT_CATEGORY) params.set('category_id', CURRENT_CATEGORY);
