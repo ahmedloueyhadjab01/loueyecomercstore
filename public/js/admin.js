@@ -154,7 +154,7 @@ function updateSubscriptionUI(user) {
   // تحديث رابط المتجر للتاجر
   const storeLinkEl = document.getElementById('vendorStoreLink');
   const copyBtn = document.getElementById('copyVendorStoreLinkBtn');
-  const storePath = user.store_slug ? `/store/${encodeURIComponent(user.store_slug)}` : `/store/${user.id || 1}`;
+  const storePath = '/';
   if (storeLinkEl) {
     storeLinkEl.href = storePath;
     storeLinkEl.title = `رابط متجرك للزبائن: ${window.location.origin}${storePath}`;
