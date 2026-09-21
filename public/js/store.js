@@ -166,7 +166,7 @@ async function loadProducts() {
   for (const p of products) {
     const outOfStock = p.stock <= 0;
     const card = document.createElement('div');
-    card.className = 'product-card fade-in overflow-hidden flex flex-col';
+    card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col group';
 
     // جمع الألوان الفريدة إن وجدت
     let colorDotsHtml = '';
@@ -206,22 +206,26 @@ async function loadProducts() {
       : (p.has_variants ? 'اختر الخيارات 📦' : (isWholesale ? 'أضف العبوة للسلة 🛒' : 'أضف للسلة 🛒'));
 
     card.innerHTML = `
-      <a href="${prodUrl}" class="aspect-square bg-sand-deep overflow-hidden block border-b-2 border-ink relative">
-        <img src="${p.image || '/img/placeholder.svg'}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover ${outOfStock ? 'opacity-40 grayscale' : ''}" loading="lazy" />
-        ${outOfStock ? '<span class="absolute top-2 right-2 bg-ink text-white text-xs font-black px-2.5 py-1 rounded-full shadow">نفد المخزون</span>' : ''}
-        ${!outOfStock && p.compare_price && p.compare_price > p.price ? `<span class="discount-badge absolute top-2 left-2">خصم ${Math.round((1 - p.price / p.compare_price) * 100)}%</span>` : ''}
+      <a href="${prodUrl}" class="aspect-[4/5] bg-gray-50 overflow-hidden block relative">
+        <img src="${p.image || '/img/placeholder.svg'}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${outOfStock ? 'opacity-50 grayscale' : ''}" loading="lazy" />
+        ${outOfStock ? '<span class="absolute top-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">نفذت الكمية</span>' : ''}
+        ${!outOfStock && p.compare_price && p.compare_price > p.price ? `<span class="absolute top-3 left-3 bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">وفر ${Math.round((1 - p.price / p.compare_price) * 100)}%</span>` : ''}
       </a>
-      <div class="p-3.5 flex flex-col flex-1 gap-2">
-        <a href="${prodUrl}" class="text-sm font-black text-ink line-clamp-2 flex-1 hover:text-forest transition-colors">${escapeHtml(p.name)}</a>
+      <div class="p-4 flex flex-col flex-1 gap-2">
+        <a href="${prodUrl}" class="text-sm font-bold text-gray-900 line-clamp-2 hover:text-black transition-colors">${escapeHtml(p.name)}</a>
         ${colorDotsHtml}
-        <div class="flex flex-col gap-0.5 mt-1">
+        <div class="flex flex-col gap-1 mt-auto pt-2">
           <div class="flex items-center justify-between">
-            <span class="price-ticket font-black">${money(p.price)}</span>
+            <div class="flex flex-col">
+              ${p.compare_price > p.price ? `<span class="text-[11px] text-gray-400 line-through">${money(p.compare_price)}</span>` : ''}
+              <span class="text-lg font-black text-black">${money(p.price)}</span>
+            </div>
             ${packBadge}
           </div>
           ${perPieceText}
         </div>
-        <button class="add-to-cart btn-primary w-full text-xs font-black py-2.5 rounded-xl shadow-xs mt-1" ${outOfStock ? 'disabled' : ''} style="${outOfStock ? 'opacity:.5;cursor:not-allowed' : ''}">
+        <button class="add-to-cart w-full bg-black hover:bg-gray-800 text-white text-sm font-bold py-2.5 rounded-xl shadow-md transition-colors mt-2 flex items-center justify-center gap-2" ${outOfStock ? 'disabled' : ''} style="${outOfStock ? 'opacity:.5;cursor:not-allowed' : ''}">
+          <span class="text-lg">${outOfStock ? '⚠️' : '🛒'}</span>
           ${addBtnLabel}
         </button>
       </div>
@@ -264,7 +268,15 @@ function showToast(msg) {
 }
 
 // ---------- سلة التسوق (Drawer) ----------
+function updateCartCount() {
+  const count = Cart.get().reduce((acc, i) => acc + i.qty, 0);
+  document.getElementById('cartCount').textContent = count;
+  const bcc = document.getElementById('bottomCartCount');
+  if (bcc) bcc.textContent = count;
+}
+
 function renderCartDrawer() {
+  updateCartCount();
   const items = Cart.get();
   const container = document.getElementById('cartItems');
   container.innerHTML = '';

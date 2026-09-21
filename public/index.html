@@ -15,41 +15,41 @@
     theme: {
       extend: {
         fontFamily: { sans: ['Almarai', 'sans-serif'], display: ['Lalezar', 'sans-serif'] },
-        colors: { ink: '#17241F', forest: '#1E6F54', terracotta: '#2F6690', gold: '#C9A227', sand: '#FAF3E6' }
+        colors: { ink: '#111827', forest: '#000000', sand: '#ffffff' }
       }
     }
   }
 </script>
 </head>
-<body class="font-sans bg-sand text-ink">
+<body class="font-sans bg-gray-50 text-gray-900 pb-20 md:pb-0">
 
   <!-- شريط علوي رفيع لأيقونات التواصل الاجتماعي (يختفي تلقائيًا إن لم تكن هناك روابط) -->
   <div id="socialIconsTopBar" class="flex justify-center gap-2 py-1.5 bg-ink"></div>
 
   <!-- الهيدر -->
-  <header class="brand-header sticky top-0 z-40">
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
       <a href="/" class="text-3xl brand-logo font-black">متجر لؤي</a>
       <form id="searchFormDesktop" class="hidden md:flex flex-1 max-w-md relative items-center" onsubmit="return false;">
-        <input id="searchInput" type="search" placeholder="ابحث عن منتج، صنف، أو وصف..." autocomplete="off"
-          class="field w-full pr-4 pl-20 py-2.5 text-sm font-bold text-ink placeholder:text-ink/60 rounded-full border-2 border-ink bg-sand/60 focus:bg-white" />
+        <input id="searchInput" type="search" placeholder="ابحث عن منتج، قسم أو ماركة..." autocomplete="off"
+          class="field w-full pr-4 pl-20 py-2.5 text-sm font-bold text-gray-900 placeholder:text-gray-400 rounded-full border border-gray-200 bg-gray-50 focus:bg-white shadow-inner" />
         <button id="clearSearchBtn" type="button" class="hidden absolute left-12 top-1/2 -translate-y-1/2 text-ink/40 hover:text-rose-600 font-black text-xs px-1.5 py-1" title="مسح">✕</button>
-        <button id="searchBtn" type="button" class="absolute left-1.5 top-1/2 -translate-y-1/2 bg-forest hover:bg-forest-dark text-white px-3.5 py-1.5 rounded-full text-xs font-black flex items-center gap-1 transition-all shadow-xs" title="بحث">
+        <button id="searchBtn" type="button" class="absolute left-1.5 top-1/2 -translate-y-1/2 bg-black hover:bg-gray-800 text-white px-3.5 py-1.5 rounded-full text-xs font-black flex items-center gap-1 transition-all shadow-sm" title="بحث">
           <span>🔍</span>
           <span class="hidden sm:inline">بحث</span>
         </button>
       </form>
-      <button id="cartBtn" class="btn-primary relative flex items-center gap-2 px-5 py-2 rounded-full text-sm font-black">
+      <button id="cartBtn" class="relative flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold bg-black text-white hover:bg-gray-800 transition-colors shadow-sm hidden md:flex">
         🛒 السلة
-        <span id="cartCount" class="absolute -top-2 -left-2 bg-gold text-ink text-xs font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-ink">0</span>
+        <span id="cartCount" class="absolute -top-1 -left-1 bg-rose-500 text-white text-xs font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm">0</span>
       </button>
     </div>
-    <div class="md:hidden px-4 pb-3">
+    <div class="md:hidden px-4 pb-3 pt-1">
       <form id="searchFormMobile" class="relative flex items-center" onsubmit="return false;">
-        <input id="searchInputMobile" type="search" placeholder="ابحث عن منتج، صنف، أو وصف..." autocomplete="off"
-          class="field w-full pr-4 pl-20 py-2.5 text-sm font-bold text-ink placeholder:text-ink/60 rounded-full border-2 border-ink bg-sand/60 focus:bg-white" />
+        <input id="searchInputMobile" type="search" placeholder="ابحث عن منتج، قسم أو ماركة..." autocomplete="off"
+          class="field w-full pr-4 pl-20 py-2.5 text-sm font-bold text-gray-900 placeholder:text-gray-400 rounded-full border border-gray-200 bg-gray-50 focus:bg-white shadow-inner" />
         <button id="clearSearchBtnMobile" type="button" class="hidden absolute left-12 top-1/2 -translate-y-1/2 text-ink/40 hover:text-rose-600 font-black text-xs px-1.5 py-1" title="مسح">✕</button>
-        <button id="searchBtnMobile" type="button" class="absolute left-1.5 top-1/2 -translate-y-1/2 bg-forest hover:bg-forest-dark text-white px-3.5 py-1.5 rounded-full text-xs font-black flex items-center gap-1 transition-all shadow-xs" title="بحث">
+        <button id="searchBtnMobile" type="button" class="absolute left-1.5 top-1/2 -translate-y-1/2 bg-black hover:bg-gray-800 text-white px-3.5 py-1.5 rounded-full text-xs font-black flex items-center gap-1 transition-all shadow-sm" title="بحث">
           <span>🔍</span>
           <span>بحث</span>
         </button>
@@ -166,5 +166,27 @@
     initSocialIcons('socialIconsFooter');
     initSocialIcons('socialIconsTopBar', { size: 'w-7 h-7 text-sm' });
   </script>
+
+  <!-- Bottom Mobile Navbar -->
+  <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 flex justify-around items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe">
+    <a href="/" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-black transition-colors">
+      <span class="text-xl mb-1">🏠</span>
+      <span class="text-[10px] font-bold">الرئيسية</span>
+    </a>
+    <button onclick="document.getElementById('searchInputMobile')?.focus(); window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-black transition-colors">
+      <span class="text-xl mb-1">🔍</span>
+      <span class="text-[10px] font-bold">بحث</span>
+    </button>
+    <button onclick="openCart()" class="relative flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-black transition-colors">
+      <span class="text-xl mb-1">🛒</span>
+      <span class="text-[10px] font-bold">السلة</span>
+      <span id="bottomCartCount" class="absolute top-1 right-5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">0</span>
+    </button>
+    <a href="/admin.html" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-black transition-colors">
+      <span class="text-xl mb-1">👤</span>
+      <span class="text-[10px] font-bold">حسابي</span>
+    </a>
+  </nav>
 </body>
+
 </html>
