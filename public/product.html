@@ -12,16 +12,16 @@
 <script>
   tailwind.config = {
     theme: { extend: { fontFamily: { sans: ['Almarai', 'sans-serif'], display: ['Lalezar', 'sans-serif'] },
-      colors: { ink: '#17241F', forest: '#1E6F54', terracotta: '#2F6690', gold: '#C9A227', sand: '#FAF3E6' } } }
+      colors: { ink: '#111827', forest: '#000000', sand: '#ffffff' } } }
   }
 </script>
 </head>
-<body class="font-sans bg-sand text-ink">
-  <header class="brand-header sticky top-0 z-40">
+<body class="font-sans bg-gray-50 text-gray-900 pb-20 md:pb-0">
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <a href="/" class="text-2xl brand-logo font-black">متجري</a>
-      <button id="cartBtn" class="btn-primary relative px-4 py-2 rounded-full text-sm font-black flex items-center gap-2">
-        🛒 السلة <span id="cartCount" class="absolute -top-2 -left-2 bg-gold text-ink text-xs font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-ink">0</span>
+      <button id="cartBtn" class="relative flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold bg-black text-white hover:bg-gray-800 transition-colors shadow-sm hidden md:flex">
+        🛒 السلة <span id="cartCount" class="absolute -top-2 -left-2 bg-gold text-ink text-xs font-black w-5 h-5 rounded-full flex items-center justify-center border border-gray-100">0</span>
       </button>
     </div>
   </header>
@@ -53,7 +53,7 @@
 
   <!-- نموذج إتمام الطلب (Checkout Modal) -->
   <div id="checkoutOverlay" class="fixed inset-0 bg-ink/40 hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-sand border-2 border-ink rounded-2xl w-full max-w-md p-6 my-8 shadow-2xl">
+    <div class="bg-sand border border-gray-100 rounded-2xl w-full max-w-md p-6 my-8 shadow-2xl">
       <div class="flex items-center justify-between mb-4">
         <h2 class="font-display text-2xl font-black text-ink">معلومات التوصيل</h2>
         <button id="cancelCheckoutHeader" class="text-2xl leading-none font-black text-ink hover:text-terracotta">&times;</button>
@@ -176,7 +176,7 @@
         row.className = 'flex items-center gap-3 border-b-2 border-ink/20 pb-3';
         const totalPieces = (item.pack_quantity || 1) * item.qty;
         row.innerHTML = `
-          <img src="${item.image || '/img/placeholder.svg'}" class="w-14 h-14 object-cover rounded-lg bg-sand-deep border-2 border-ink shadow-2xs" />
+          <img src="${item.image || '/img/placeholder.svg'}" class="w-14 h-14 object-cover rounded-lg bg-sand-deep border border-gray-100 shadow-2xs" />
           <div class="flex-1">
             <p class="text-sm font-black text-ink line-clamp-1">${escapeHtml(item.name)}${item.variant_label ? ` <span class="text-xs text-forest-dark font-black">(${escapeHtml(item.variant_label)})</span>` : ''}</p>
             <p class="text-xs text-ink font-bold">${money(item.price)} <span class="text-[10px] text-ink/60 font-normal">/ عبوة</span></p>
@@ -500,8 +500,8 @@
       el.innerHTML = `
         <div class="grid md:grid-cols-2 gap-8">
           <div>
-            <div id="mainImageWrap" class="aspect-square bg-white rounded-2xl overflow-hidden border-2 border-ink relative cursor-zoom-in group shadow-sm">
-              <img id="mainProductImage" src="${GALLERY_IMAGES[0]}" class="w-full h-full object-contain p-2 transition-opacity duration-200 ${product.stock <= 0 ? 'opacity-40 grayscale' : ''}" />
+            <div id="mainImageWrap" class="aspect-square bg-gray-200 animate-pulse rounded-2xl overflow-hidden border border-gray-100 relative cursor-zoom-in group shadow-sm">
+              <img id="mainProductImage" src="${GALLERY_IMAGES[0]}" class="w-full h-full object-contain p-2 transition-opacity duration-700 opacity-0 ${product.stock <= 0 ? 'grayscale' : ''}" onload="this.classList.remove('opacity-0'); this.parentElement.classList.remove('animate-pulse'); this.parentElement.classList.add('bg-white');" />
               ${product.stock <= 0 ? '<span class="absolute top-3 right-3 bg-ink text-white text-xs font-extrabold px-3 py-1.5 rounded-full shadow">نفد المخزون</span>' : ''}
               <span class="absolute bottom-2 left-2 bg-ink/75 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full pointer-events-none">🔍 اضغط للتكبير</span>
             </div>
@@ -513,7 +513,7 @@
               const isWholesale = (product.pack_quantity || 1) > 1;
               const packQty = product.pack_quantity || 1;
               return `
-            <div class="flex flex-col gap-1 mb-4 bg-sand/60 border-2 border-ink/20 rounded-2xl p-4">
+            <div class="flex flex-col gap-1 mb-4 bg-sand/60 border border-gray-100/20 rounded-2xl p-4">
               <div class="flex items-center justify-between">
                 <span id="displayPrice" class="price-ticket lg inline-flex font-black">${money(product.price)}</span>
                 ${isWholesale
@@ -528,7 +528,7 @@
             </div>`;
             })()}
             
-            <p class="text-ink font-semibold leading-relaxed mb-6 whitespace-pre-line text-sm bg-white/75 p-4 rounded-2xl border-2 border-ink/20 shadow-2xs">${escapeHtml(product.description || 'لا يوجد وصف لهذا المنتج بعد.')}</p>
+            <p class="text-ink font-semibold leading-relaxed mb-6 whitespace-pre-line text-sm bg-white/75 p-4 rounded-2xl border border-gray-100/20 shadow-2xs">${escapeHtml(product.description || 'لا يوجد وصف لهذا المنتج بعد.')}</p>
             
             <!-- قسم اختيار الألوان والمقاسات التفاعلي -->
             <div id="variantsContainer" class="space-y-5 mb-6"></div>
@@ -539,10 +539,10 @@
                 const isWholesale = (product.pack_quantity || 1) > 1;
                 const packQty = product.pack_quantity || 1;
                 return `
-              <div class="flex items-center justify-between gap-3 bg-white border-2 border-ink/20 p-3 rounded-xl">
+              <div class="flex items-center justify-between gap-3 bg-white border border-gray-100/20 p-3 rounded-xl">
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-black text-ink">${isWholesale ? 'عدد العبوات:' : 'الكمية:'}</span>
-                  <div class="flex items-center gap-1.5 bg-sand-deep border-2 border-ink rounded-lg px-2 py-0.5 shadow-2xs">
+                  <div class="flex items-center gap-1.5 bg-sand-deep border border-gray-100 rounded-lg px-2 py-0.5 shadow-2xs">
                     <button id="qtyDecBtn" class="w-7 h-7 rounded-md font-black text-base flex items-center justify-center hover:bg-sand transition-colors">-</button>
                     <input id="productQtyInput" type="number" min="1" value="1" class="w-10 text-center font-black text-sm text-ink outline-none bg-transparent" />
                     <button id="qtyIncBtn" class="w-7 h-7 rounded-md font-black text-base flex items-center justify-center hover:bg-sand transition-colors">+</button>
@@ -920,5 +920,22 @@
     }
 
   </script>
+
+  <!-- Bottom Mobile Navbar -->
+  <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 z-50 flex justify-around items-center h-16 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]" style="padding-bottom: env(safe-area-inset-bottom);">
+    <a href="/" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-black transition-colors">
+      <span class="text-xl mb-1">🏠</span>
+      <span class="text-[10px] font-bold">الرئيسية</span>
+    </a>
+    <button onclick="document.getElementById('searchInputMobile')?.focus(); window.scrollTo({top: 0, behavior: 'smooth'});" class="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-black transition-colors">
+      <span class="text-xl mb-1">🔍</span>
+      <span class="text-[10px] font-bold">بحث</span>
+    </button>
+    <button onclick="openCart()" class="relative flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-black transition-colors">
+      <span class="text-xl mb-1">🛒</span>
+      <span class="text-[10px] font-bold">السلة</span>
+      <span id="bottomCartCount" class="absolute top-1 right-5 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">0</span>
+    </button>
+  </nav>
 </body>
 </html>

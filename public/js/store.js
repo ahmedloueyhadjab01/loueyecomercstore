@@ -206,10 +206,10 @@ async function loadProducts() {
       : (p.has_variants ? 'اختر الخيارات 📦' : (isWholesale ? 'أضف العبوة للسلة 🛒' : 'أضف للسلة 🛒'));
 
     card.innerHTML = `
-      <a href="${prodUrl}" class="aspect-[4/5] bg-gray-50 overflow-hidden block relative">
-        <img src="${p.image || '/img/placeholder.svg'}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${outOfStock ? 'opacity-50 grayscale' : ''}" loading="lazy" />
-        ${outOfStock ? '<span class="absolute top-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">نفذت الكمية</span>' : ''}
-        ${!outOfStock && p.compare_price && p.compare_price > p.price ? `<span class="absolute top-3 left-3 bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">وفر ${Math.round((1 - p.price / p.compare_price) * 100)}%</span>` : ''}
+      <a href="${prodUrl}" class="aspect-[4/5] bg-gray-200 animate-pulse overflow-hidden block relative">
+        <img src="${p.image || '/img/placeholder.svg'}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-700 opacity-0 ${outOfStock ? 'grayscale' : ''}" onload="this.classList.remove('opacity-0'); this.parentElement.classList.remove('animate-pulse'); this.parentElement.classList.add('bg-gray-50');" loading="lazy" />
+        ${outOfStock ? '<span class="absolute top-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm z-10">نفذت الكمية</span>' : ''}
+        ${!outOfStock && p.compare_price && p.compare_price > p.price ? `<span class="absolute top-3 left-3 bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm z-10">وفر ${Math.round((1 - p.price / p.compare_price) * 100)}%</span>` : ''}
       </a>
       <div class="p-4 flex flex-col flex-1 gap-2">
         <a href="${prodUrl}" class="text-sm font-bold text-gray-900 line-clamp-2 hover:text-black transition-colors">${escapeHtml(p.name)}</a>
