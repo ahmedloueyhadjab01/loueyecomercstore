@@ -126,11 +126,9 @@ router.post(
         }
 
         for (const item of requestedItems.values()) {
-          const product = await trx.get(
-            'SELECT * FROM products WHERE id = $1 AND is_active = 1 AND user_id = $2',
-            [item.id, store_id]
-          );
+          const product = await trx.get('SELECT * FROM products WHERE id = $1 AND is_active = 1', [item.id]);
           if (!product) throw new Error('أحد المنتجات غير متاح حالياً');
+          store_id = product.user_id; // Fix to ensure order goes to the product owner
 
           const qty = Math.max(1, Math.min(parseInt(item.qty, 10) || 1, 999));
 
