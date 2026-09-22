@@ -181,7 +181,8 @@ async function loadProducts() {
   for (const p of products) {
     const outOfStock = p.stock <= 0;
     const card = document.createElement('div');
-    card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col group';
+      card.onclick = () => location.href = prodUrl;
+    card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer';
 
     // جمع الألوان الفريدة إن وجدت
     let colorDotsHtml = '';
@@ -261,11 +262,13 @@ async function loadProducts() {
     if (!outOfStock) {
       const btn = card.querySelector('.add-to-cart');
       if (p.has_variants) {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
           window.location.href = prodUrl;
         });
       } else {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
           const inCart = Cart.get().find((i) => i.id === p.id && !i.variant_id);
           const currentQty = inCart ? inCart.qty : 0;
           if (currentQty + 1 > p.stock) {
