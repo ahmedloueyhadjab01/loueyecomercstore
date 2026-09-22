@@ -3321,6 +3321,7 @@ async function loadVendorShippingSettings() {
     if (form.provider) form.provider.value = config.provider || 'manual';
     if (form.api_key) form.api_key.value = config.api_key || '';
     if (form.api_token) form.api_token.value = config.api_token || '';
+      if (form.manual_provider_name) form.manual_provider_name.value = config.manual_provider_name || '';
     if (form.from_wilaya_id) form.from_wilaya_id.value = config.from_wilaya_id || 16;
     if (form.from_commune) form.from_commune.value = config.from_commune || '';
     

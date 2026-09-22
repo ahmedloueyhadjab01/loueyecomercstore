@@ -77,8 +77,9 @@ class ShippingService {
     if (!order) throw new Error('الطلب غير موجود أو لا ينتمي لمتجرك');
 
     const config = await this.getVendorConfig(vendorId);
-    if (!config || !config.api_key || config.provider === 'manual') {
-      throw new Error('يرجى إدخال وتفعيل مفاتيح الـ API لشركة التوصيل في إعدادات الشحن أولاً');
+        if (!config || config.provider === 'manual' || !config.api_key) {
+      // Return a local manual label URL
+      return { label_url: `/api/shipping/orders/${orderId}/manual-label` };
     }
 
     if (config.provider === 'yalidine') {
