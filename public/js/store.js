@@ -253,6 +253,7 @@ async function loadProducts() {
           imgEl.classList.remove('opacity-0');
         } else {
           imgEl.addEventListener('load', () => imgEl.classList.remove('opacity-0'));
+          imgEl.addEventListener('error', () => imgEl.classList.remove('opacity-0'));
         }
       }
 
