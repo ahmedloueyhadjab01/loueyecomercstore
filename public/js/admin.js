@@ -2839,7 +2839,7 @@ async function loadOrderStats() {
   if (!res.ok) return;
   const s = await res.json();
   document.getElementById('statSales').textContent = money(s.total_sales);
-  document.getElementById('statShipping').textContent = `- ${money(s.total_shipping_cost)}`;
+  document.getElementById('statShipping').textContent = `- ${money(s.shipping_losses)}`;
   const netEl = document.getElementById('statNet');
   netEl.textContent = money(s.net_profit);
   netEl.style.color = s.net_profit >= 0 ? '#1E6F54' : '#2F6690';
