@@ -147,13 +147,27 @@ router.post(
             }
             if (!(await decrementStock({ qty, variant_id: variant.id }, trx))) {
               const latest = (await currentStockOf({ variant_id: variant.id }, trx)) || 0;
-              throw new Error(`الكمية المتوفرة من "${product.name}" (${variant.label}) هي ${latest} فقط`);
+              if (latest <= 0) {
+                throw new Error(`عذراً، لقد نفد المخزون من "${product.name}" (${variant.label})`);
+              } else {
+                throw new Error(`عذراً، الكمية المتوفرة من "${product.name}" (${variant.label}) هي ${latest} فقط`);
+              }
             }
+
+
+
           } else {
             if (!(await decrementStock({ qty, id: product.id }, trx))) {
               const latest = (await currentStockOf({ id: product.id }, trx)) || 0;
-              throw new Error(`الكمية المتوفرة من "${product.name}" هي ${latest} فقط`);
+              if (latest <= 0) {
+                throw new Error(`عذراً، لقد نفد المخزون من "${product.name}"`);
+              } else {
+                throw new Error(`عذراً، الكمية المتوفرة من "${product.name}" هي ${latest} فقط`);
+              }
             }
+
+
+
           }
 
           subtotal += parseFloat(product.price) * qty;
