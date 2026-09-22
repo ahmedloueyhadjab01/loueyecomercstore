@@ -78,7 +78,7 @@ async function loadCategories() {
 
   for (const cat of CATEGORY_TREE) {
     const btn = document.createElement('button');
-    btn.className = 'cat-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm';
+    btn.className = 'cat-btn px-4 py-1.5 rounded-full text-sm font-bold transition-colors whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900';
     btn.dataset.cat = cat.id;
     btn.textContent = cat.name;
     nav.appendChild(btn);
