@@ -155,7 +155,7 @@ async function loadProducts() {
   if (CURRENT_STORE_ID) params.set('store_id', CURRENT_STORE_ID);
   if (CURRENT_CATEGORY) params.set('category_id', CURRENT_CATEGORY);
   if (SEARCH_QUERY) params.set('q', SEARCH_QUERY);
-  params.set('t', Date.now()); // Cache Buster
+    params.set('t', Date.now());
 
   const res = await fetch(`/api/products?${params.toString()}`);
   const products = await res.json();
@@ -169,9 +169,9 @@ async function loadProducts() {
 
   if (!products.length) {
     if (SEARCH_QUERY) {
-      empty.innerHTML = `<div class="text-center py-10"><p class="text-lg font-bold text-slate-800 mb-2">لم يتم العثور على منتجات مطابقة لـ "${escapeHtmlSimple(SEARCH_QUERY)}"</p><p class="text-sm text-slate-500">تأكد من كتابة الكلمات بشكل صحيح أو ابحث باسم الصنف</p></div>`;
+      empty.innerHTML = `لم يتم العثور على منتجات مطابقة لـ "<strong>${escapeHtmlSimple(SEARCH_QUERY)}</strong>"<br><span class="text-xs font-normal text-ink/60 mt-1.5 block">تأكد من كتابة الكلمات بشكل صحيح أو ابحث باسم الصنف أو الوصف</span>`;
     } else {
-      empty.innerHTML = `<div class="text-center py-10"><p class="text-lg font-bold text-slate-800">لا توجد منتجات متاحة حالياً.</p></div>`;
+      empty.innerHTML = 'لا توجد منتجات حاليًا في هذا التصنيف.';
     }
     empty.classList.remove('hidden');
     return;
@@ -306,7 +306,7 @@ function updateCartCount() {
 function renderCartDrawer() {
   updateCartCount();
   const items = Cart.get();
-  const container = document.getElementById('cartItems');
+  const container = document.getElementById('cartItemsList');
   container.innerHTML = '';
 
   if (!items.length) {
@@ -344,29 +344,29 @@ function renderCartDrawer() {
 
 function openCart() {
   renderCartDrawer();
-  document.getElementById('cartOverlay').classList.remove('hidden');
+  document.getElementById('checkoutOverlay' /* renamed overlay */).classList.remove('hidden');
   document.getElementById('cartDrawer').classList.add('open');
 }
 function closeCart() {
-  document.getElementById('cartOverlay').classList.add('hidden');
+  document.getElementById('checkoutOverlay' /* renamed overlay */).classList.add('hidden');
   document.getElementById('cartDrawer').classList.remove('open');
 }
 
-document.getElementById('cartBtn').addEventListener('click', openCart);
-document.getElementById('closeCart').addEventListener('click', closeCart);
-document.getElementById('cartOverlay').addEventListener('click', closeCart);
+document.getElementById('cartBtn')?.addEventListener('click', openCart);
+document.getElementById('closeCart')?.addEventListener('click', closeCart);
+document.getElementById('checkoutOverlay' /* renamed overlay */).addEventListener('click', closeCart);
 
 // ---------- إتمام الطلب: الولاية / البلدية / نوع التوصيل ----------
-const wilayaSelect = document.getElementById('wilayaSelect');
-const communeSelect = document.getElementById('communeSelect');
+const wilayaSelect = document.getElementById('custWilaya');
+const communeSelect = document.getElementById('custCommune');
 
 Locations.loadWilayas(wilayaSelect);
 
 wilayaSelect.addEventListener('change', async () => {
   const code = wilayaSelect.value;
   if (!code) {
-    communeSelect.disabled = true;
-    communeSelect.innerHTML = '<option value="">البلدية...</option>';
+    if(communeSelect) communeSelect.disabled = true;
+    if(communeSelect) communeSelect.innerHTML = '<option value="">البلدية...</option>';
   } else {
     await Locations.loadCommunes(code, communeSelect);
   }
@@ -457,24 +457,24 @@ async function updateDeliveryPrices() {
 function updateGrandTotal() {
   const deliveryFee = CURRENT_DYNAMIC_SHIPPING !== null ? CURRENT_DYNAMIC_SHIPPING : currentDeliveryPrice();
   const grand = Cart.total() + (deliveryFee || 0);
-  document.getElementById('checkoutGrandTotal').textContent = money(grand);
+  document.getElementById('cartTotal').textContent = money(grand);
 }
 
 // ---------- إتمام الطلب ----------
-document.getElementById('checkoutBtn').addEventListener('click', () => {
+document.getElementById('checkoutBtn')?.addEventListener('click', () => {
   if (!Cart.get().length) return;
   closeCart();
   updateGrandTotal();
   document.getElementById('checkoutOverlay').classList.remove('hidden');
 });
-document.getElementById('cancelCheckout').addEventListener('click', () => {
+document.getElementById('cancelCheckout')?.addEventListener('click', () => {
   document.getElementById('checkoutOverlay').classList.add('hidden');
 });
 
-document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+document.getElementById('checkoutForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
-  const errorEl = document.getElementById('checkoutError');
+  const errorEl = document.getElementById('checkoutError' /* */);
   errorEl.classList.add('hidden');
 
   const submitBtn = form.querySelector('button[type="submit"]');
@@ -490,7 +490,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
     phone: form.phone.value.trim(),
     address: form.address.value.trim(),
     wilaya_code: Number(wilayaSelect.value),
-    commune: communeSelect.value.trim(),
+    commune: (communeSelect ? communeSelect.value : '').trim(),
     delivery_type: CURRENT_DELIVERY_TYPE,
     items: Cart.get().map((i) => ({ id: i.id, qty: i.qty, variant_id: i.variant_id || undefined })),
     store_id: storeId,
@@ -520,8 +520,8 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e) => 
     renderCartDrawer();
     document.getElementById('checkoutOverlay').classList.add('hidden');
     form.reset();
-    communeSelect.disabled = true;
-    communeSelect.innerHTML = '<option value="">البلدية...</option>';
+    if(communeSelect) communeSelect.disabled = true;
+    if(communeSelect) communeSelect.innerHTML = '<option value="">البلدية...</option>';
     showToast(`تم إرسال طلبك بنجاح 🎉 رقم الطلب: ${data.order_id}`);
   } catch (err) {
     errorEl.textContent = err.message;
