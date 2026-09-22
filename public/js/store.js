@@ -147,6 +147,155 @@ async function loadProducts() {
             <div class="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
             <div class="h-10 bg-gray-200 rounded-xl w-full"></div>
           </div>
+let ALL_CATEGORIES = [];
+let CURRENT_CATEGORY = '';
+let SEARCH_QUERY = '';
+let CURRENT_DELIVERY_TYPE = 'home';
+let CURRENT_STORE_ID = null;
+let CURRENT_STORE_INFO = null;
+let STORE_LOOKUP_FAILED = false;
+
+// ---------- التقاط UTM من رابط الزيارة وحفظها في sessionStorage ----------
+(function captureUtm() {
+  const params = new URLSearchParams(window.location.search);
+  const utm_fields = ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content'];
+  let found = false;
+  for (const field of utm_fields) {
+    if (params.has(field)) {
+      sessionStorage.setItem(field, params.get(field));
+      found = true;
+    }
+  }
+  // احتفظ بـ referrer إذا لم يكن هناك utm_source (مثلاً زيارة عضوية من موقع آخر)
+  if (!found && document.referrer && !sessionStorage.getItem('utm_source')) {
+    try {
+      const ref = new URL(document.referrer);
+      sessionStorage.setItem('utm_source', ref.hostname);
+    } catch {}
+  }
+})();
+
+function getUtmParams() {
+  return {
+    utm_source: sessionStorage.getItem('utm_source') || '',
+    utm_campaign: sessionStorage.getItem('utm_campaign') || '',
+    utm_medium: sessionStorage.getItem('utm_medium') || '',
+    utm_content: sessionStorage.getItem('utm_content') || '',
+  };
+}
+
+function money(n) {
+  return `${Number(n).toLocaleString('ar-DZ')} دج`;
+}
+
+// كشف التاجر/المتجر من الرابط (/store/:idOrSlug أو ?store_id=X أو ?store_slug=X)
+function detectStoreIdentifier() { return "default"; }
+
+async function initStoreInfo() {
+  const identifier = detectStoreIdentifier();
+  if (!identifier) return;
+
+  try {
+    const res = await fetch(`/api/auth/store-info/${encodeURIComponent(identifier)}`);
+    if (!res.ok) {
+      STORE_LOOKUP_FAILED = true;
+      return;
+    }
+    CURRENT_STORE_INFO = await res.json();
+    CURRENT_STORE_ID = CURRENT_STORE_INFO.id;
+    if (CURRENT_STORE_INFO.store_name) {
+      document.title = CURRENT_STORE_INFO.store_name;
+      document.querySelectorAll('.brand-logo').forEach((el) => {
+        el.textContent = CURRENT_STORE_INFO.store_name;
+      });
+    }
+  } catch (_) {
+    STORE_LOOKUP_FAILED = true;
+  }
+}
+
+let CATEGORY_TREE = [];
+
+async function loadCategories() {
+  const params = new URLSearchParams();
+  if (CURRENT_STORE_ID) params.set('store_id', CURRENT_STORE_ID);
+  const res = await fetch(`/api/categories?${params.toString()}`);
+  CATEGORY_TREE = await res.json();
+
+  const nav = document.getElementById('categoryNav');
+  nav.querySelectorAll('.cat-btn:not([data-cat=""])').forEach((b) => b.remove());
+
+  for (const cat of CATEGORY_TREE) {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn whitespace-nowrap px-4 py-1.5 rounded-full text-sm';
+    btn.dataset.cat = cat.id;
+    btn.textContent = cat.name;
+    nav.appendChild(btn);
+  }
+
+  nav.addEventListener('click', (e) => {
+    const btn = e.target.closest('.cat-btn');
+    if (!btn) return;
+    selectMainCategory(btn.dataset.cat);
+  });
+}
+
+function selectMainCategory(catId) {
+  const nav = document.getElementById('categoryNav');
+  const subNav = document.getElementById('subCategoryNav');
+
+  document.querySelectorAll('#categoryNav .cat-btn').forEach((b) => {
+    const isActive = b.dataset.cat === catId;
+    b.classList.toggle('active-cat', isActive);
+    b.classList.toggle('dimmed', !isActive && catId !== '');
+  });
+
+  CURRENT_CATEGORY = catId;
+
+  // ابحث عن التصنيفات الفرعية لهذا التصنيف الرئيسي وأظهرها كقائمة منسدلة تحته
+  const parent = CATEGORY_TREE.find((c) => String(c.id) === String(catId));
+  const children = parent && parent.children ? parent.children : [];
+
+  if (children.length) {
+    subNav.classList.remove('hidden');
+    subNav.innerHTML =
+      `<button data-subcat="${catId}" class="subcat-btn active-cat">الكل في ${escapeHtmlSimple(parent.name)}</button>` +
+      children.map((c) => `<button data-subcat="${c.id}" class="subcat-btn">${escapeHtmlSimple(c.name)}</button>`).join('');
+    subNav.querySelectorAll('.subcat-btn').forEach((sb) => {
+      sb.addEventListener('click', () => {
+        subNav.querySelectorAll('.subcat-btn').forEach((b) => b.classList.remove('active-cat'));
+        sb.classList.add('active-cat');
+        CURRENT_CATEGORY = sb.dataset.subcat;
+        loadProducts();
+      });
+    });
+  } else {
+    subNav.classList.add('hidden');
+    subNav.innerHTML = '';
+  }
+
+  loadProducts();
+}
+
+function escapeHtmlSimple(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function loadProducts() {
+  const grid = document.getElementById('productsGrid');
+  if (grid) {
+    grid.innerHTML = Array(8).fill(`
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col animate-pulse">
+        <div class="aspect-[4/5] bg-gray-200"></div>
+        <div class="p-4 flex flex-col gap-2">
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div class="mt-auto pt-2">
+            <div class="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div class="h-10 bg-gray-200 rounded-xl w-full"></div>
+          </div>
         </div>
       </div>
     `).join('');
@@ -155,6 +304,7 @@ async function loadProducts() {
   if (CURRENT_STORE_ID) params.set('store_id', CURRENT_STORE_ID);
   if (CURRENT_CATEGORY) params.set('category_id', CURRENT_CATEGORY);
   if (SEARCH_QUERY) params.set('q', SEARCH_QUERY);
+  params.set('t', Date.now()); // منع التخزين المؤقت
 
   const res = await fetch(`/api/products?${params.toString()}`);
   const products = await res.json();
@@ -170,12 +320,7 @@ async function loadProducts() {
     if (SEARCH_QUERY) {
       empty.innerHTML = `لم يتم العثور على منتجات مطابقة لـ "<strong>${escapeHtmlSimple(SEARCH_QUERY)}</strong>"<br><span class="text-xs font-normal text-ink/60 mt-1.5 block">تأكد من كتابة الكلمات بشكل صحيح أو ابحث باسم الصنف أو الوصف</span>`;
     } else {
-      empty.innerHTML = 'لا توجد منتجات حاليًا في هذا التصنيف.';
-    }
-    empty.classList.remove('hidden');
-    return;
-  }
-  empty.classList.add('hidden');
+      empty.innerHTML = 'لا توجد منتجات متاحة حالياً.';
 
   for (const p of products) {
     const outOfStock = p.stock <= 0;
