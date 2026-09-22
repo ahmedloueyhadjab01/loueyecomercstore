@@ -77,7 +77,7 @@ router.post(
       return res.status(400).json({ error: errors.array()[0].msg });
     }
 
-    const { customer_name, phone, address, wilaya_code, commune, delivery_type, items, store_id } = req.body;
+    let { customer_name, phone, address, wilaya_code, commune, delivery_type, items, store_id } = req.body;
 
     // التحقق من أن المتجر موجود وفعال
     const vendor = await db.get(
@@ -127,7 +127,7 @@ router.post(
 
         for (const item of requestedItems.values()) {
           const product = await trx.get('SELECT * FROM products WHERE id = $1 AND is_active = 1', [item.id]);
-          if (!product) throw new Error('المنتج رقم ' + item.id + ' غير موجود أو غير نشط في قاعدة البيانات. يرجى إفراغ السلة والمحاولة مجددا.');
+          if (!product) throw new Error('المنتج "' + (item.name || 'المحدد') + '" لم يعد متوفراً. يرجى حذفه من السلة لإتمام الطلبية.');
           store_id = product.user_id; // Fix to ensure order goes to the product owner
 
           const qty = Math.max(1, Math.min(parseInt(item.qty, 10) || 1, 999));
