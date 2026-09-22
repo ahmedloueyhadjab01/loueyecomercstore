@@ -249,15 +249,15 @@ const forgotPasswordSection = document.getElementById('forgotPasswordSection');
 
 window.switchAuthTab = function(tab) {
   if (tab === 'register') {
-    if (tabAuthRegister) tabAuthRegister.className = 'py-2.5 rounded-lg bg-white border border-ink shadow-sm text-ink transition-all flex items-center justify-center gap-1 cursor-pointer';
-    if (tabAuthLogin) tabAuthLogin.className = 'py-2.5 rounded-lg text-ink/70 hover:text-ink transition-all cursor-pointer';
+    if (tabAuthRegister) tabAuthRegister.className = 'py-2.5 rounded-lg bg-white border border-slate-200 shadow-sm text-slate-900 transition-all flex items-center justify-center gap-1 cursor-pointer';
+    if (tabAuthLogin) tabAuthLogin.className = 'py-2.5 rounded-lg text-slate-900/70 hover:text-slate-900 transition-all cursor-pointer';
     if (registerForm) registerForm.classList.remove('hidden');
     if (loginForm) loginForm.classList.add('hidden');
     if (forgotPasswordSection) forgotPasswordSection.classList.add('hidden');
     if (emailVerifySection) emailVerifySection.classList.add('hidden');
   } else {
-    if (tabAuthLogin) tabAuthLogin.className = 'py-2.5 rounded-lg bg-white border border-ink shadow-sm text-ink transition-all cursor-pointer';
-    if (tabAuthRegister) tabAuthRegister.className = 'py-2.5 rounded-lg text-ink/70 hover:text-ink transition-all flex items-center justify-center gap-1 cursor-pointer';
+    if (tabAuthLogin) tabAuthLogin.className = 'py-2.5 rounded-lg bg-white border border-slate-200 shadow-sm text-slate-900 transition-all cursor-pointer';
+    if (tabAuthRegister) tabAuthRegister.className = 'py-2.5 rounded-lg text-slate-900/70 hover:text-slate-900 transition-all flex items-center justify-center gap-1 cursor-pointer';
     if (loginForm) loginForm.classList.remove('hidden');
     if (registerForm) registerForm.classList.add('hidden');
     if (forgotPasswordSection) forgotPasswordSection.classList.add('hidden');
@@ -618,14 +618,14 @@ async function loadSubscriptionHistory() {
     if (!res.ok) return;
     const data = await res.json();
     if (!data.history || data.history.length === 0) {
-      container.innerHTML = '<p class="text-xs text-ink/50 font-bold py-4 text-center">لا توجد اشتراكات سابقة مسجلة بعد.</p>';
+      container.innerHTML = '<p class="text-xs text-slate-900/50 font-bold py-4 text-center">لا توجد اشتراكات سابقة مسجلة بعد.</p>';
       return;
     }
 
     container.innerHTML = `
       <table class="w-full text-right text-xs font-bold">
         <thead>
-          <tr class="border-b border-ink/20 text-ink/60">
+          <tr class="border-b border-slate-200/20 text-slate-900/60">
             <th class="py-2.5 px-3">الخطة</th>
             <th class="py-2.5 px-3">المبلغ</th>
             <th class="py-2.5 px-3">تاريخ البدء</th>
@@ -637,9 +637,9 @@ async function loadSubscriptionHistory() {
           ${data.history.map(log => `
             <tr>
               <td class="py-3 px-3 font-black">${log.plan === 'annual' ? '👑 سنوي' : '🗓️ شهري'}</td>
-              <td class="py-3 px-3 font-black text-forest">${Number(log.amount).toLocaleString('ar-DZ')} دج</td>
-              <td class="py-3 px-3 text-ink/70">${new Date(log.starts_at).toLocaleDateString('ar-DZ')}</td>
-              <td class="py-3 px-3 text-ink/70">${new Date(log.ends_at).toLocaleDateString('ar-DZ')}</td>
+              <td class="py-3 px-3 font-black text-blue-600">${Number(log.amount).toLocaleString('ar-DZ')} دج</td>
+              <td class="py-3 px-3 text-slate-900/70">${new Date(log.starts_at).toLocaleDateString('ar-DZ')}</td>
+              <td class="py-3 px-3 text-slate-900/70">${new Date(log.ends_at).toLocaleDateString('ar-DZ')}</td>
               <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-black">مكتمل</span></td>
             </tr>
           `).join('')}
@@ -756,7 +756,7 @@ async function loadPendingRequests() {
     if (badge) badge.textContent = requests.length;
 
     if (requests.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-ink/50">لا توجد طلبات اشتراك جديدة معلقة حالياً.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-900/50">لا توجد طلبات اشتراك جديدة معلقة حالياً.</td></tr>';
       return;
     }
 
@@ -769,13 +769,13 @@ async function loadPendingRequests() {
 
       return `
         <tr class="hover:bg-amber-50/50 transition-colors">
-          <td class="py-3 px-3 font-black text-ink">
+          <td class="py-3 px-3 font-black text-slate-900">
             <div>${escapeHtml(r.name || '')}</div>
-            <div class="text-[10px] text-ink/60 font-bold">${escapeHtml(r.store_name || 'متجر')}</div>
+            <div class="text-[10px] text-slate-900/60 font-bold">${escapeHtml(r.store_name || 'متجر')}</div>
           </td>
-          <td class="py-3 px-3 font-bold text-ink/80 dir-ltr">${escapeHtml(r.email || '')}</td>
+          <td class="py-3 px-3 font-bold text-slate-900/80 dir-ltr">${escapeHtml(r.email || '')}</td>
           <td class="py-3 px-3">${planText}</td>
-          <td class="py-3 px-3 text-ink/70 text-[11px]">${timeAgo}</td>
+          <td class="py-3 px-3 text-slate-900/70 text-[11px]">${timeAgo}</td>
           <td class="py-3 px-3 text-center">
             <div class="flex items-center justify-center gap-1.5">
               <button type="button" data-req-action="approve" data-req-id="${r.id}" data-user-name="${escapeHtml(r.name || '')}" data-plan="${r.plan}" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black shadow-xs cursor-pointer">
@@ -843,7 +843,7 @@ async function loadAdminUsersList() {
   loadPendingRequests();
   const tbody = document.getElementById('adminUsersTableBody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-ink/50 font-bold">جاري تحميل بيانات المشتركين... ⏳</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-900/50 font-bold">جاري تحميل بيانات المشتركين... ⏳</td></tr>';
 
   try {
     const res = await fetch('/api/subscription/admin/users');
@@ -884,7 +884,7 @@ function renderAdminUsers(users) {
   if (!tbody) return;
 
   if (users.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-ink/50 font-bold">لا يوجد أي مشترك مطابق للبحث.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-900/50 font-bold">لا يوجد أي مشترك مطابق للبحث.</td></tr>';
     return;
   }
 
@@ -907,15 +907,15 @@ function renderAdminUsers(users) {
     const expiryDisplay = expiryDateStr ? new Date(expiryDateStr).toLocaleDateString('ar-DZ') : '-';
 
     return `
-      <tr class="hover:bg-sand/30 transition-colors">
+      <tr class="hover:bg-slate-50/30 transition-colors">
         <td class="py-3.5 px-4">
-          <div class="font-black text-ink text-sm">${escapeHtml(u.name || '')}</div>
-          <div class="text-[11px] text-ink/60 font-bold">${escapeHtml(u.store_name || 'بدون اسم متجر')} ${u.role === 'admin' ? '⭐ <b class="text-purple-700">مدير عام</b>' : ''}</div>
+          <div class="font-black text-slate-900 text-sm">${escapeHtml(u.name || '')}</div>
+          <div class="text-[11px] text-slate-900/60 font-bold">${escapeHtml(u.store_name || 'بدون اسم متجر')} ${u.role === 'admin' ? '⭐ <b class="text-purple-700">مدير عام</b>' : ''}</div>
         </td>
-        <td class="py-3.5 px-4 font-bold text-ink/80">${escapeHtml(u.email || '')}</td>
+        <td class="py-3.5 px-4 font-bold text-slate-900/80">${escapeHtml(u.email || '')}</td>
         <td class="py-3.5 px-4">${planBadge}</td>
         <td class="py-3.5 px-4">${statusBadge}</td>
-        <td class="py-3.5 px-4 text-ink/70 text-xs">${expiryDisplay}</td>
+        <td class="py-3.5 px-4 text-slate-900/70 text-xs">${expiryDisplay}</td>
         <td class="py-3.5 px-4 text-center">
           <div class="flex items-center justify-center gap-1.5 flex-wrap">
             <button type="button" data-admin-action="activate-monthly" data-user-id="${u.id}" data-user-name="${escapeHtml(u.name || '')}" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black shadow-xs transition-all cursor-pointer" title="تفعيل اشتراك شهري (30 يوماً من اليوم)">
@@ -1116,14 +1116,14 @@ let CATEGORY_MODAL_PARENT = null;
 
 function renderCategoryNode(cat, container) {
   const wrap = document.createElement('div');
-  wrap.className = 'border-r-2 border-ink/10 pr-3';
+  wrap.className = 'border-r-2 border-slate-200/10 pr-3';
   wrap.innerHTML = `
-    <div class="flex items-center justify-between bg-sand rounded-lg px-3 py-2 mb-2 border border-ink/10">
+    <div class="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 mb-2 border border-slate-200/10">
       <span class="font-bold text-sm">${escapeHtml(cat.name)}</span>
       <div class="flex gap-2">
-        <button class="add-sub-btn text-xs bg-forest text-white w-6 h-6 rounded-full font-black" title="إضافة تصنيف فرعي">+</button>
-        <button class="edit-cat-btn text-xs text-ink/70 hover:text-ink font-bold px-1" title="تعديل التصنيف">✏️</button>
-        <button class="del-cat-btn text-xs text-terracotta font-extrabold px-1" title="حذف التصنيف">🗑️</button>
+        <button class="add-sub-btn text-xs bg-blue-600 text-white w-6 h-6 rounded-full font-black" title="إضافة تصنيف فرعي">+</button>
+        <button class="edit-cat-btn text-xs text-slate-900/70 hover:text-slate-900 font-bold px-1" title="تعديل التصنيف">✏️</button>
+        <button class="del-cat-btn text-xs text-blue-500 font-extrabold px-1" title="حذف التصنيف">🗑️</button>
       </div>
     </div>
     <div class="children pr-4 space-y-2"></div>
@@ -1145,7 +1145,7 @@ async function loadCategoryTree() {
   const container = document.getElementById('categoryTree');
   container.innerHTML = '';
   if (!tree.length) {
-    container.innerHTML = '<p class="text-ink/40 text-sm font-bold">لا توجد تصنيفات بعد. اضغط "+ إضافة تصنيف رئيسي" للبدء.</p>';
+    container.innerHTML = '<p class="text-slate-900/40 text-sm font-bold">لا توجد تصنيفات بعد. اضغط "+ إضافة تصنيف رئيسي" للبدء.</p>';
   }
   for (const cat of tree) renderCategoryNode(cat, container);
 
@@ -1272,13 +1272,13 @@ async function loadProducts() {
   });
 
   if (!filteredProducts.length) {
-    table.innerHTML = '<p class="p-6 text-ink/40 text-sm font-bold">لا توجد منتجات بعد.</p>';
+    table.innerHTML = '<p class="p-6 text-slate-900/40 text-sm font-bold">لا توجد منتجات بعد.</p>';
     return;
   }
 
   table.innerHTML = `
     <table class="w-full text-sm">
-      <thead class="bg-sand text-ink/60">
+      <thead class="bg-slate-50 text-slate-900/60">
         <tr>
           <th class="p-3 text-right">الصورة</th>
           <th class="p-3 text-right">الاسم</th>
@@ -1294,21 +1294,21 @@ async function loadProducts() {
   const tbody = document.getElementById('productsTbody');
   for (const p of filteredProducts) {
     const tr = document.createElement('tr');
-    tr.className = 'border-t border-ink/10';
+    tr.className = 'border-t border-slate-200/10';
     const packQuantity = Number(p.pack_quantity) || 1;
     const unitLabel = packQuantity > 1 ? 'عبوة' : 'حبة';
     tr.innerHTML = `
-      <td class="p-3"><img src="${p.image || '/img/placeholder.svg'}" class="w-10 h-10 object-cover rounded-lg bg-sand border border-ink/10" /></td>
+      <td class="p-3"><img src="${p.image || '/img/placeholder.svg'}" class="w-10 h-10 object-cover rounded-lg bg-slate-50 border border-slate-200/10" /></td>
       <td class="p-3">
         <span class="font-bold block">${escapeHtml(p.name)}</span>
-        <span class="text-[10px] text-ink/60 font-bold">${unitLabel} (${packQuantity} قطعة) — القطعة: ${money(Math.round(p.price / packQuantity))}</span>
+        <span class="text-[10px] text-slate-900/60 font-bold">${unitLabel} (${packQuantity} قطعة) — القطعة: ${money(Math.round(p.price / packQuantity))}</span>
       </td>
       <td class="p-3 font-black">${money(p.price)}</td>
-      <td class="p-3 font-bold">${p.stock} ${unitLabel}${p.has_variants ? ' <span class="text-[10px] bg-gold/20 text-gold border border-gold/40 rounded-full px-2 py-0.5 font-bold">مقاسات</span>' : ''}</td>
-      <td class="p-3">${p.is_active ? '<span class="text-forest font-bold">مفعّل</span>' : '<span class="text-ink/40">معطّل</span>'}</td>
+      <td class="p-3 font-bold">${p.stock} ${unitLabel}${p.has_variants ? ' <span class="text-[10px] bg-yellow-500/20 text-yellow-600 border border-gold/40 rounded-full px-2 py-0.5 font-bold">مقاسات</span>' : ''}</td>
+      <td class="p-3">${p.is_active ? '<span class="text-blue-600 font-bold">مفعّل</span>' : '<span class="text-slate-900/40">معطّل</span>'}</td>
       <td class="p-3 flex gap-2">
-        <button class="edit-btn text-forest font-extrabold">تعديل</button>
-        <button class="del-btn text-terracotta font-extrabold">حذف</button>
+        <button class="edit-btn text-blue-600 font-extrabold">تعديل</button>
+        <button class="del-btn text-blue-500 font-extrabold">حذف</button>
       </td>
     `;
     tr.querySelector('.edit-btn').addEventListener('click', () => openProductModal(p));
@@ -1368,13 +1368,13 @@ function addColorBlock(colorName = '', colorCode = '#17241F', imagePath = '', in
   const blockId = `cblock-${COLOR_BLOCK_ID++}`;
   const container = document.getElementById('colorBlocksContainer');
   const block = document.createElement('div');
-  block.className = 'color-block bg-sand-deep/60 border-2 border-ink/20 rounded-xl p-4 space-y-3 relative';
+  block.className = 'color-block bg-slate-100/60 border border-slate-200/20 rounded-xl p-4 space-y-3 relative';
   block.dataset.blockId = blockId;
 
   block.innerHTML = `
-    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-ink/10 pb-3">
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/10 pb-3">
       <div class="flex items-center gap-2 flex-1 min-w-[200px]">
-        <input class="cb-color-picker w-8 h-8 rounded-lg border-2 border-ink cursor-pointer p-0.5" type="color" value="${colorCode || '#17241F'}" title="اختر رمز اللون للعرض بالمتجر" />
+        <input class="cb-color-picker w-8 h-8 rounded-lg border border-slate-200 cursor-pointer p-0.5" type="color" value="${colorCode || '#17241F'}" title="اختر رمز اللون للعرض بالمتجر" />
         <input class="cb-color-name field px-3 py-1.5 text-xs font-bold flex-1" placeholder="اسم اللون (مثال: أصفر، أسود، أحمر)" value="${escapeHtml(colorName)}" />
       </div>
       <div class="flex items-center gap-2">
@@ -1382,20 +1382,20 @@ function addColorBlock(colorName = '', colorCode = '#17241F', imagePath = '', in
           📷 <span>صورة هذا اللون</span>
           <input type="file" accept="image/*" class="cb-image-file hidden" />
         </label>
-        <div class="cb-image-preview w-8 h-8 rounded-lg border border-ink/30 bg-white overflow-hidden flex items-center justify-center text-[10px] text-ink/40">
+        <div class="cb-image-preview w-8 h-8 rounded-lg border border-slate-200/30 bg-white overflow-hidden flex items-center justify-center text-[10px] text-slate-900/40">
           ${imagePath ? `<img src="${imagePath}" class="w-full h-full object-cover" />` : 'لا صورة'}
         </div>
-        <button type="button" class="cb-remove-btn text-terracotta hover:bg-terracotta/10 w-7 h-7 rounded-lg font-black text-sm flex items-center justify-center" title="حذف هذا اللون">&times;</button>
+        <button type="button" class="cb-remove-btn text-blue-500 hover:bg-blue-500/10 w-7 h-7 rounded-lg font-black text-sm flex items-center justify-center" title="حذف هذا اللون">&times;</button>
       </div>
     </div>
 
     <!-- جدول مقاسات هذا اللون -->
     <div class="space-y-2">
       <div class="flex items-center justify-between">
-        <span class="text-[11px] font-extrabold text-ink/70">المقاسات المتوفرة لهذا اللون:</span>
+        <span class="text-[11px] font-extrabold text-slate-900/70">المقاسات المتوفرة لهذا اللون:</span>
         <div class="flex gap-2">
-          <button type="button" class="cb-quick-sizes text-[10px] text-forest font-bold hover:underline">+ مقاسات شائعة (S, M, L, XL)</button>
-          <button type="button" class="cb-add-size-btn text-[10px] bg-forest text-white px-2 py-0.5 rounded font-bold">+ مقاس</button>
+          <button type="button" class="cb-quick-sizes text-[10px] text-blue-600 font-bold hover:underline">+ مقاسات شائعة (S, M, L, XL)</button>
+          <button type="button" class="cb-add-size-btn text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded font-bold">+ مقاس</button>
         </div>
       </div>
       <div class="cb-sizes-list space-y-1.5"></div>
@@ -1422,7 +1422,7 @@ function addColorBlock(colorName = '', colorCode = '#17241F', imagePath = '', in
       <input class="cb-s-label field px-2 py-1 text-xs" placeholder="المقاس (مثال: M)" value="${escapeHtml(sizeLabel)}" />
       <input class="cb-s-qty field px-2 py-1 text-xs" type="number" min="0" placeholder="الكمية بالمخزون" value="${qty}" />
       <input class="cb-s-cost field px-2 py-1 text-xs" type="number" step="0.01" min="0" placeholder="سعر الشراء" value="${cost}" />
-      <button type="button" class="cb-s-del text-terracotta font-extrabold text-xs px-1 hover:bg-terracotta/10 rounded">&times;</button>
+      <button type="button" class="cb-s-del text-blue-500 font-extrabold text-xs px-1 hover:bg-blue-500/10 rounded">&times;</button>
     `;
     sRow.querySelector('.cb-s-del').addEventListener('click', () => sRow.remove());
     sizesList.appendChild(sRow);
@@ -1464,7 +1464,7 @@ function addVariantRow(label = '', qty = '', cost = '') {
     <input class="v-label field px-2 py-1.5 text-xs" placeholder="المقاس (مثال: 42 أو M)" value="${escapeHtml(label)}" />
     <input class="v-qty field px-2 py-1.5 text-xs" type="number" min="0" placeholder="الكمية" value="${qty}" />
     <input class="v-cost field px-2 py-1.5 text-xs" type="number" step="0.01" min="0" placeholder="سعر الشراء" value="${cost}" />
-    <button type="button" class="v-remove text-terracotta font-extrabold text-xs px-1">حذف</button>
+    <button type="button" class="v-remove text-blue-500 font-extrabold text-xs px-1">حذف</button>
   `;
   row.querySelector('.v-remove').addEventListener('click', () => row.remove());
   document.getElementById('variantRows').appendChild(row);
@@ -1553,14 +1553,14 @@ if (topCloseBtn) topCloseBtn.addEventListener('click', () => document.getElement
       input.value = 1;
       if (label) label.textContent = 'بيع بالحبة (ديطاي)';
       btn.textContent = '🏷️ البيع بالحبة';
-      btn.className = 'text-[11px] font-black px-2 py-0.5 rounded transition-all cursor-pointer border-2 text-rose-700 border-rose-300 bg-rose-50 hover:bg-rose-100';
+      btn.className = 'text-[11px] font-black px-2 py-0.5 rounded transition-all cursor-pointer border text-rose-700 border-rose-300 bg-rose-50 hover:bg-rose-100';
     } else {
       // وضع الجملة: أظهر الـ input
       wrap.classList.remove('hidden');
       input.setAttribute('required', '');
       if (label) label.textContent = 'عدد القطع بالعبوة';
       btn.textContent = '📦 البيع بالجملة';
-      btn.className = 'text-[11px] font-black px-2 py-0.5 rounded transition-all cursor-pointer border-2 text-forest border-forest bg-forest/10 hover:bg-forest/20';
+      btn.className = 'text-[11px] font-black px-2 py-0.5 rounded transition-all cursor-pointer border text-blue-600 border-blue-600 bg-blue-600/10 hover:bg-blue-600/20';
     }
   }
 
@@ -1587,29 +1587,29 @@ function renderVariantsEditPanel(product) {
   const list = document.getElementById('variantsEditList');
   const variants = product.variants || [];
   if (!variants.length) {
-    list.innerHTML = '<p class="text-xs text-ink/40">لا توجد مواصفات/مقاسات مسجلة بعد.</p>';
+    list.innerHTML = '<p class="text-xs text-slate-900/40">لا توجد مواصفات/مقاسات مسجلة بعد.</p>';
     return;
   }
 
   list.innerHTML = variants.map(v => {
-    const colorCircle = v.color_code ? `<span class="w-3.5 h-3.5 rounded-full border border-ink/30 inline-block shrink-0" style="background-color:${v.color_code}"></span>` : '';
-    const imgThumb = v.image ? `<img src="${v.image}" class="w-8 h-8 object-cover rounded-lg border border-ink/20" />` : '';
+    const colorCircle = v.color_code ? `<span class="w-3.5 h-3.5 rounded-full border border-slate-200/30 inline-block shrink-0" style="background-color:${v.color_code}"></span>` : '';
+    const imgThumb = v.image ? `<img src="${v.image}" class="w-8 h-8 object-cover rounded-lg border border-slate-200/20" />` : '';
     const labelText = v.label || [v.color, v.size].filter(Boolean).join(' - ');
 
     return `
-      <div class="flex items-center justify-between bg-white rounded-xl border border-ink/15 p-2.5 text-xs shadow-xs">
+      <div class="flex items-center justify-between bg-white rounded-xl border border-slate-200/15 p-2.5 text-xs shadow-xs">
         <div class="flex items-center gap-2">
           ${imgThumb}
           ${colorCircle}
           <div>
-            <span class="font-black text-ink">${escapeHtml(labelText)}</span>
-            <div class="text-[10px] text-ink/50">المخزون: <b class="text-forest">${v.stock}</b> | التكلفة: ${money(v.cost_price || 0)}</div>
+            <span class="font-black text-slate-900">${escapeHtml(labelText)}</span>
+            <div class="text-[10px] text-slate-900/50">المخزون: <b class="text-blue-600">${v.stock}</b> | التكلفة: ${money(v.cost_price || 0)}</div>
           </div>
         </div>
         <div class="flex gap-2">
           <button type="button" class="v-image-btn text-sky-700 hover:bg-sky-50 px-2 py-1 rounded font-black text-xs" data-vid="${v.id}" title="تغيير صورة اللون أو المقاس">تغيير الصورة</button>
-          <button type="button" class="v-restock-btn text-forest hover:bg-forest/10 px-2 py-1 rounded font-black text-xs" data-vid="${v.id}" data-label="${escapeHtml(labelText)}" data-stock="${v.stock}">+ تزويد</button>
-          <button type="button" class="v-delete-btn text-terracotta hover:bg-terracotta/10 px-2 py-1 rounded font-black text-xs" data-vid="${v.id}" data-label="${escapeHtml(labelText)}" data-stock="${v.stock}">حذف</button>
+          <button type="button" class="v-restock-btn text-blue-600 hover:bg-blue-600/10 px-2 py-1 rounded font-black text-xs" data-vid="${v.id}" data-label="${escapeHtml(labelText)}" data-stock="${v.stock}">+ تزويد</button>
+          <button type="button" class="v-delete-btn text-blue-500 hover:bg-blue-500/10 px-2 py-1 rounded font-black text-xs" data-vid="${v.id}" data-label="${escapeHtml(labelText)}" data-stock="${v.stock}">حذف</button>
         </div>
       </div>
     `;
@@ -2128,7 +2128,7 @@ function renderSavedCalculations() {
 
   const saved = getSavedCalculations();
   if (!saved.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-ink/40 font-bold">لا توجد حسبات محفوظة بعد</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-900/40 font-bold">لا توجد حسبات محفوظة بعد</td></tr>';
     return;
   }
 
@@ -2138,13 +2138,13 @@ function renderSavedCalculations() {
     const netUnit = margin - Number(item.adCost || 0);
     const netColor = netUnit >= 0 ? '#1E6F54' : '#2F6690';
 
-    return `<tr class="border-t border-ink/10 hover:bg-sand/60 transition-colors">
+    return `<tr class="border-t border-slate-200/10 hover:bg-slate-50/60 transition-colors">
       <td class="p-2 font-bold">${escapeHtml(item.title)}</td>
       <td class="p-2 text-center font-bold">${money(item.price)}</td>
-      <td class="p-2 text-center font-bold text-terracotta">${money(item.adCost)}</td>
+      <td class="p-2 text-center font-bold text-blue-500">${money(item.adCost)}</td>
       <td class="p-2 text-center font-black" style="color:${netColor}">${money(netUnit)}</td>
       <td class="p-2 text-center space-x-1 space-x-reverse">
-        <button type="button" data-calc-id="${item.id}" onclick="window.loadSavedCalculation('${item.id}')" class="btn-load-calc text-forest font-black px-2.5 py-1 rounded-lg bg-forest/10 hover:bg-forest/20 transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs">
+        <button type="button" data-calc-id="${item.id}" onclick="window.loadSavedCalculation('${item.id}')" class="btn-load-calc text-blue-600 font-black px-2.5 py-1 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs">
           <span>📂</span> <span>تحميل</span>
         </button>
         <button type="button" data-calc-id="${item.id}" onclick="window.deleteSavedCalculation('${item.id}')" class="btn-delete-calc text-rose-600 font-black px-2.5 py-1 rounded-lg hover:bg-rose-50 transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs">
@@ -2163,7 +2163,7 @@ function addCalcFixedRow(label = '', amount = '') {
   row.innerHTML = `
     <input class="calc-fixed-label field px-2 py-1.5 text-xs" placeholder="اسم المصروف (مثال: إيجار)" value="${escapeHtml(label)}" />
     <input class="calc-fixed-amount field px-2 py-1.5 text-xs" type="number" min="0" placeholder="المبلغ" value="${amount}" />
-    <button type="button" class="calc-remove-row text-terracotta font-extrabold text-xs px-1">حذف</button>
+    <button type="button" class="calc-remove-row text-blue-500 font-extrabold text-xs px-1">حذف</button>
   `;
   row.querySelector('.calc-remove-row').addEventListener('click', () => { row.remove(); recomputeCalculator(); });
   row.querySelectorAll('input').forEach((inp) => inp.addEventListener('input', recomputeCalculator));
@@ -2206,7 +2206,7 @@ function recomputeCalculator() {
   // بانر الحالة
   const banner = document.getElementById('calcStatusBanner');
   if (margin <= 0) {
-    banner.className = 'rounded-2xl border-2 p-4 font-extrabold text-center';
+    banner.className = 'rounded-2xl border p-4 font-extrabold text-center';
     banner.style.background = '#fdecea';
     banner.style.borderColor = '#2F6690';
     banner.style.color = '#2F6690';
@@ -2262,19 +2262,19 @@ function renderCampaignTable(campaigns) {
   const tbody = document.getElementById('campaignsTbody');
   if (!tbody) return;
   if (!campaigns.length) {
-    tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-ink/40 font-bold">لا توجد حملات مطابقة للفلاتر الحالية.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-slate-900/40 font-bold">لا توجد حملات مطابقة للفلاتر الحالية.</td></tr>';
     return;
   }
   tbody.innerHTML = campaigns.map((c) => {
     const netColor = c.net_profit >= 0 ? '#1E6F54' : '#C03B2B';
     const roasColor = c.real_roas >= 1 ? '#1E6F54' : '#C03B2B';
     const delivRate = c.delivery_rate.toFixed(0);
-    return `<tr class="border-t border-ink/10 hover:bg-sand/60 transition-colors">
-      <td class="p-3"><span class="font-black text-xs block">${escapeHtml(c.campaign_name)}</span><span class="text-xs text-ink/50">${getSourceLabel(c.source)}</span></td>
-      <td class="p-3 text-center font-bold">${c.registered_orders}</td><td class="p-3 text-center font-black text-forest-dark">${c.delivered_orders}</td>
-      <td class="p-3 text-center font-black text-terracotta">${c.cancelled_orders}</td><td class="p-3 text-center font-black">${delivRate}%</td>
-      <td class="p-3 text-center font-bold text-terracotta">${money(c.ad_spend)}</td><td class="p-3 text-center font-bold">${c.real_cpa > 0 ? money(c.real_cpa) : '—'}</td>
-      <td class="p-3 text-center font-bold text-forest-dark">${money(c.delivered_revenue)}</td><td class="p-3 text-center font-bold text-terracotta">- ${money(c.returned_shipping_loss)}</td>
+    return `<tr class="border-t border-slate-200/10 hover:bg-slate-50/60 transition-colors">
+      <td class="p-3"><span class="font-black text-xs block">${escapeHtml(c.campaign_name)}</span><span class="text-xs text-slate-900/50">${getSourceLabel(c.source)}</span></td>
+      <td class="p-3 text-center font-bold">${c.registered_orders}</td><td class="p-3 text-center font-black text-blue-700">${c.delivered_orders}</td>
+      <td class="p-3 text-center font-black text-blue-500">${c.cancelled_orders}</td><td class="p-3 text-center font-black">${delivRate}%</td>
+      <td class="p-3 text-center font-bold text-blue-500">${money(c.ad_spend)}</td><td class="p-3 text-center font-bold">${c.real_cpa > 0 ? money(c.real_cpa) : '—'}</td>
+      <td class="p-3 text-center font-bold text-blue-700">${money(c.delivered_revenue)}</td><td class="p-3 text-center font-bold text-blue-500">- ${money(c.returned_shipping_loss)}</td>
       <td class="p-3 text-center font-black" style="color:${netColor}">${money(c.net_profit)}</td><td class="p-3 text-center font-black" style="color:${roasColor}">${c.real_roas.toFixed(2)}×</td>
     </tr>`;
   }).join('');
@@ -2313,7 +2313,7 @@ async function loadCampaignAnalytics() {
     // جدول الحملات
     const tbody = document.getElementById('campaignsTbody');
     if (!campaigns.length) {
-      tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-ink/40 font-bold">لا توجد بيانات حملات بعد. أضف مصاريف إعلانية أو تأكد من أن روابط إعلاناتك تحتوي utm_campaign.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-slate-900/40 font-bold">لا توجد بيانات حملات بعد. أضف مصاريف إعلانية أو تأكد من أن روابط إعلاناتك تحتوي utm_campaign.</td></tr>';
     } else {
       renderCampaignTable(filterCampaigns(campaigns));
       /*
@@ -2322,19 +2322,19 @@ async function loadCampaignAnalytics() {
         const roasColor = c.real_roas >= 1 ? '#1E6F54' : '#C03B2B';
         const delivRate = c.delivery_rate.toFixed(0);
         const delivRateColor = c.delivery_rate >= 70 ? '#1E6F54' : c.delivery_rate >= 50 ? '#C9A227' : '#C03B2B';
-        return `<tr class="border-t border-ink/10 hover:bg-sand/60 transition-colors">
+        return `<tr class="border-t border-slate-200/10 hover:bg-slate-50/60 transition-colors">
           <td class="p-3">
             <span class="font-black text-xs block">${escapeHtml(c.campaign_name)}</span>
-            <span class="text-xs text-ink/50">${getSourceLabel(c.source)}</span>
+            <span class="text-xs text-slate-900/50">${getSourceLabel(c.source)}</span>
           </td>
           <td class="p-3 text-center font-bold">${c.registered_orders}</td>
-          <td class="p-3 text-center font-black text-forest-dark">${c.delivered_orders}</td>
-          <td class="p-3 text-center font-black text-terracotta">${c.cancelled_orders}</td>
+          <td class="p-3 text-center font-black text-blue-700">${c.delivered_orders}</td>
+          <td class="p-3 text-center font-black text-blue-500">${c.cancelled_orders}</td>
           <td class="p-3 text-center font-black" style="color:${delivRateColor}">${delivRate}%</td>
-          <td class="p-3 text-center font-bold text-terracotta">${money(c.ad_spend)}</td>
+          <td class="p-3 text-center font-bold text-blue-500">${money(c.ad_spend)}</td>
           <td class="p-3 text-center font-bold">${c.real_cpa > 0 ? money(c.real_cpa) : '—'}</td>
-          <td class="p-3 text-center font-bold text-forest-dark">${money(c.delivered_revenue)}</td>
-          <td class="p-3 text-center font-bold text-terracotta">- ${money(c.returned_shipping_loss)}</td>
+          <td class="p-3 text-center font-bold text-blue-700">${money(c.delivered_revenue)}</td>
+          <td class="p-3 text-center font-bold text-blue-500">- ${money(c.returned_shipping_loss)}</td>
           <td class="p-3 text-center font-black" style="color:${netColor}">${money(c.net_profit)}</td>
           <td class="p-3 text-center font-black" style="color:${roasColor}">${c.real_roas.toFixed(2)}×</td>
         </tr>`;
@@ -2344,18 +2344,18 @@ async function loadCampaignAnalytics() {
     // سجل مصاريف الإعلانات
     const spendTbody = document.getElementById('spendHistoryTbody');
     if (!recent_spends.length) {
-      spendTbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-ink/40 font-bold">لا توجد سجلات مصاريف بعد</td></tr>';
+      spendTbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-slate-900/40 font-bold">لا توجد سجلات مصاريف بعد</td></tr>';
     } else {
       spendTbody.innerHTML = recent_spends.map((s) => `
-        <tr class="border-t border-ink/10 hover:bg-sand/60 transition-colors">
+        <tr class="border-t border-slate-200/10 hover:bg-slate-50/60 transition-colors">
           <td class="p-3 font-bold text-sm dir-ltr text-right">${escapeHtml(s.campaign_name)}</td>
           <td class="p-3 text-sm">${getSourceLabel(s.source)}</td>
-          <td class="p-3 font-black text-terracotta text-sm">${money(s.spend_amount)}</td>
-          <td class="p-3 text-sm text-ink/60">${String(s.spend_date).slice(0, 10)}</td>
-          <td class="p-3 text-sm text-ink/50">${escapeHtml(s.notes || '')}</td>
+          <td class="p-3 font-black text-blue-500 text-sm">${money(s.spend_amount)}</td>
+          <td class="p-3 text-sm text-slate-900/60">${String(s.spend_date).slice(0, 10)}</td>
+          <td class="p-3 text-sm text-slate-900/50">${escapeHtml(s.notes || '')}</td>
           <td class="p-3">
-            <button data-spend="${encodeURIComponent(JSON.stringify({ id: s.id, campaign_name: s.campaign_name, source: s.source, spend_amount: s.spend_amount, spend_date: String(s.spend_date).slice(0, 10), notes: s.notes || '' }))}" class="edit-spend-btn text-ink/70 hover:text-ink text-xs font-black px-2 py-1 rounded-lg hover:bg-sand transition">تعديل</button>
-            <button data-spend-id="${s.id}" class="delete-spend-btn text-rose-500 hover:text-rose-700 text-xs font-black px-2 py-1 rounded-lg hover:bg-rose-50 transition">حذف</button>
+            <button data-spend="${encodeURIComponent(JSON.stringify({ id: s.id, campaign_name: s.campaign_name, source: s.source, spend_amount: s.spend_amount, spend_date: String(s.spend_date).slice(0, 10), notes: s.notes || '' }))}" class="edit-spend-btn text-slate-900/70 hover:text-slate-900 text-xs font-black px-2 py-1 rounded-lg hover:bg-slate-50 transition">تعديل</button>
+            <button data-spend-id="${s.id}" class="delete-spend-btn text-rose-600 hover:text-rose-700 text-xs font-black px-2 py-1 rounded-lg hover:bg-rose-50 transition">حذف</button>
           </td>
         </tr>`).join('');
 
@@ -2794,12 +2794,12 @@ async function loadProfit30d() {
 
   const container = document.getElementById('profitTopProducts');
   if (!d.top_products.length) {
-    container.innerHTML = '<p class="p-6 text-ink/40 text-sm font-bold">لا توجد مبيعات مُسلَّمة خلال آخر 30 يومًا بعد.</p>';
+    container.innerHTML = '<p class="p-6 text-slate-900/40 text-sm font-bold">لا توجد مبيعات مُسلَّمة خلال آخر 30 يومًا بعد.</p>';
     return;
   }
   container.innerHTML = `
     <table class="w-full text-sm">
-      <thead class="bg-sand text-ink/60">
+      <thead class="bg-slate-50 text-slate-900/60">
         <tr>
           <th class="p-3 text-right">المنتج</th>
           <th class="p-3 text-right">الكمية المباعة</th>
@@ -2809,7 +2809,7 @@ async function loadProfit30d() {
       </thead>
       <tbody>
         ${d.top_products.map(p => `
-          <tr class="border-t border-ink/10">
+          <tr class="border-t border-slate-200/10">
             <td class="p-3 font-bold">${escapeHtml(p.name)}</td>
             <td class="p-3">${p.qty}</td>
             <td class="p-3">${money(p.revenue)}</td>
@@ -2887,13 +2887,13 @@ function renderOrdersTable() {
   const table = document.getElementById('ordersTable');
 
   if (!orders.length) {
-    table.innerHTML = '<p class="p-6 text-ink/40 text-sm font-bold">لا توجد طلبات في هذا القسم.</p>';
+    table.innerHTML = '<p class="p-6 text-slate-900/40 text-sm font-bold">لا توجد طلبات في هذا القسم.</p>';
     return;
   }
 
   table.innerHTML = `
     <table class="w-full text-sm">
-      <thead class="bg-sand text-ink/60">
+      <thead class="bg-slate-50 text-slate-900/60">
         <tr>
           <th class="p-3 text-right">#</th>
           <th class="p-3 text-right">العميل</th>
@@ -2931,7 +2931,7 @@ function renderOrdersTable() {
 
   for (const o of orders) {
     const tr = document.createElement('tr');
-    tr.className = 'border-t border-ink/10';
+    tr.className = 'border-t border-slate-200/10';
     const deliveryLabel = o.delivery_type === 'desk' ? 'مكتب البريد 🏤' : 'للمنزل 🏠';
 
     const itemsSummary = (o.items || []).map(i => {
@@ -2940,15 +2940,15 @@ function renderOrdersTable() {
       if (i.size) details.push(`المقاس: ${escapeHtml(i.size)}`);
       if (!i.color && !i.size && i.variant_label) details.push(escapeHtml(i.variant_label));
 
-      const colorDot = i.color_code ? `<span class="w-3 h-3 rounded-full border border-ink/30 inline-block shrink-0" style="background-color:${i.color_code}"></span>` : '';
-      const imgTag = i.image ? `<img src="${i.image}" class="w-7 h-7 object-cover rounded border border-ink/20 shrink-0 bg-sand" />` : '';
-      const detailsBadge = details.length ? `<span class="bg-forest/10 text-forest font-black px-1.5 py-0.5 rounded text-[10px] inline-flex items-center gap-1">${colorDot}${details.join(' | ')}</span>` : '';
+      const colorDot = i.color_code ? `<span class="w-3 h-3 rounded-full border border-slate-200/30 inline-block shrink-0" style="background-color:${i.color_code}"></span>` : '';
+      const imgTag = i.image ? `<img src="${i.image}" class="w-7 h-7 object-cover rounded border border-slate-200/20 shrink-0 bg-slate-50" />` : '';
+      const detailsBadge = details.length ? `<span class="bg-blue-600/10 text-blue-600 font-black px-1.5 py-0.5 rounded text-[10px] inline-flex items-center gap-1">${colorDot}${details.join(' | ')}</span>` : '';
 
       return `
-        <div class="flex items-center gap-2 my-1 bg-sand-deep/40 p-1.5 rounded-lg border border-ink/5">
+        <div class="flex items-center gap-2 my-1 bg-slate-100/40 p-1.5 rounded-lg border border-slate-200/5">
           ${imgTag}
           <div class="flex-1">
-            <div class="font-bold">${escapeHtml(i.name)} <span class="text-ink/60">× ${i.qty}</span></div>
+            <div class="font-bold">${escapeHtml(i.name)} <span class="text-slate-900/60">× ${i.qty}</span></div>
             ${detailsBadge}
           </div>
         </div>
@@ -2959,53 +2959,53 @@ function renderOrdersTable() {
     const isFinalStatus = ['مرتجع', 'ملغي'].includes(o.status);
 
     const shippingLossBadge = o.shipping_cost_incurred && ['ملغي', 'مرتجع', 'تعذر التوصيل'].includes(o.status)
-      ? `<span class="block text-[10px] font-black text-terracotta mt-0.5">⚠️ خُصمت تكلفة التوصيل (-${money(o.delivery_price)})</span>`
+      ? `<span class="block text-[10px] font-black text-blue-500 mt-0.5">⚠️ خُصمت تكلفة التوصيل (-${money(o.delivery_price)})</span>`
       : '';
 
     const trackingBadge = o.tracking_code
       ? `<div class="mt-1 flex flex-col gap-1">
-           <span class="inline-flex items-center gap-1 text-[10px] font-mono font-black bg-sand border border-ink/20 px-1.5 py-0.5 rounded">
+           <span class="inline-flex items-center gap-1 text-[10px] font-mono font-black bg-slate-50 border border-slate-200/20 px-1.5 py-0.5 rounded">
              📦 ${escapeHtml(o.tracking_code)}
            </span>
            ${o.label_url ? `<a href="${o.label_url}" target="_blank" class="text-[10px] font-black text-blue-700 hover:underline flex items-center gap-1">📄 طباعة البوليصة</a>` : ''}
-           <button class="live-track-btn text-[10px] font-black text-forest hover:underline text-right" data-orderid="${o.id}">🔄 تتبع لحظي</button>
+           <button class="live-track-btn text-[10px] font-black text-blue-600 hover:underline text-right" data-orderid="${o.id}">🔄 تتبع لحظي</button>
          </div>`
       : (['قيد المعالجة', 'قيد التوصيل'].includes(o.status) ? `
          <div class="mt-1">
-           <button class="generate-label-btn btn-outline text-[10px] font-black px-2 py-1 rounded bg-sand/60 border-ink/30 hover:bg-forest hover:text-white transition-all flex items-center gap-1" data-orderid="${o.id}">
+           <button class="generate-label-btn btn-outline text-[10px] font-black px-2 py-1 rounded bg-slate-50/60 border-slate-200/30 hover:bg-blue-600 hover:text-white transition-all flex items-center gap-1" data-orderid="${o.id}">
              🏷️ توليد بوليصة الشحن
            </button>
          </div>` : '');
 
     tr.innerHTML = `
       <td class="p-3">${o.id}</td>
-      <td class="p-3">${escapeHtml(o.customer_name)}<br><span class="text-xs text-ink/40">${escapeHtml(o.phone)}</span></td>
+      <td class="p-3">${escapeHtml(o.customer_name)}<br><span class="text-xs text-slate-900/40">${escapeHtml(o.phone)}</span></td>
       <td class="p-3 text-xs">
         <b>${escapeHtml(o.wilaya_name || '')}</b> - ${escapeHtml(o.commune || '')}<br>
-        <span class="text-ink/40">${escapeHtml(o.address)}</span>
+        <span class="text-slate-900/40">${escapeHtml(o.address)}</span>
       </td>
       <td class="p-3 text-xs">
         ${deliveryLabel}<br>
-        <span class="text-ink/40">+${money(o.delivery_price)}</span>
+        <span class="text-slate-900/40">+${money(o.delivery_price)}</span>
         ${trackingBadge}
       </td>
       <td class="p-3 text-xs">${itemsSummary}</td>
-      <td class="p-3 font-extrabold">${money(o.total)}<br><span class="text-xs text-ink/40 font-normal">منتجات: ${money(o.subtotal)}</span></td>
+      <td class="p-3 font-extrabold">${money(o.total)}<br><span class="text-xs text-slate-900/40 font-normal">منتجات: ${money(o.subtotal)}</span></td>
       <td class="p-3">
         ${isFinalStatus ? `
-          <span class="inline-block px-2.5 py-1 text-xs font-black rounded-lg border ${STATUS_BADGE_STYLE[o.status] || 'bg-sand'}">
+          <span class="inline-block px-2.5 py-1 text-xs font-black rounded-lg border ${STATUS_BADGE_STYLE[o.status] || 'bg-slate-50'}">
             ${o.status}
           </span>
           ${shippingLossBadge}
         ` : `
-          <select class="status-select field px-2 py-1 text-xs font-black rounded-lg border-2 ${STATUS_BADGE_STYLE[o.status] || ''}">
+          <select class="status-select field px-2 py-1 text-xs font-black rounded-lg border ${STATUS_BADGE_STYLE[o.status] || ''}">
             ${availableStatuses.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
           ${shippingLossBadge}
         `}
       </td>
-      <td class="p-3 text-xs text-ink/40">${new Date(o.created_at).toLocaleString('ar-DZ')}</td>
-      <td class="p-3"><button class="del-order-btn text-terracotta font-extrabold text-xs hover:underline">حذف</button></td>
+      <td class="p-3 text-xs text-slate-900/40">${new Date(o.created_at).toLocaleString('ar-DZ')}</td>
+      <td class="p-3"><button class="del-order-btn text-rose-600 font-extrabold text-xs hover:underline">حذف</button></td>
     `;
 
     const selectEl = tr.querySelector('.status-select');
@@ -3140,7 +3140,7 @@ function renderDeliveryTable(rates) {
   const container = document.getElementById('deliveryTable');
   container.innerHTML = `
     <table class="w-full text-sm">
-      <thead class="bg-sand text-ink/60">
+      <thead class="bg-slate-50 text-slate-900/60">
         <tr>
           <th class="p-3 text-right">#</th>
           <th class="p-3 text-right">الولاية</th>
@@ -3154,9 +3154,9 @@ function renderDeliveryTable(rates) {
   const tbody = document.getElementById('deliveryTbody');
   for (const r of rates) {
     const tr = document.createElement('tr');
-    tr.className = 'border-t border-ink/10';
+    tr.className = 'border-t border-slate-200/10';
     tr.innerHTML = `
-      <td class="p-2 text-xs text-ink/40">${String(r.wilaya_code).padStart(2, '0')}</td>
+      <td class="p-2 text-xs text-slate-900/40">${String(r.wilaya_code).padStart(2, '0')}</td>
       <td class="p-2 font-bold">${escapeHtml(r.wilaya_name)}</td>
       <td class="p-2"><input type="number" min="0" step="10" data-code="${r.wilaya_code}" data-field="home_price" value="${r.home_price}" class="field px-2 py-1 text-sm w-28" /></td>
       <td class="p-2"><input type="number" min="0" step="10" data-code="${r.wilaya_code}" data-field="desk_price" value="${r.desk_price}" class="field px-2 py-1 text-sm w-28" /></td>
@@ -3355,7 +3355,7 @@ async function loadCustomRates() {
   const res = await fetch('/api/shipping/custom-rates');
   if (!res.ok) return;
   const { rates } = await res.json();
-  table.innerHTML = `<table class="w-full text-xs"><thead class="bg-sand"><tr><th class="p-2 text-right">الولاية</th><th class="p-2">للمنزل</th><th class="p-2">للمكتب</th><th class="p-2">متاح</th></tr></thead><tbody>${rates.map((rate) => `<tr data-wilaya-row="${rate.wilaya_code}" class="border-t border-ink/10"><td class="p-2 font-bold">${rate.wilaya_code} - ${escapeHtml(rate.wilaya_name)}</td><td class="p-2"><input data-rate="home" type="number" min="0" value="${rate.home_price}" class="field w-24 px-2 py-1 text-xs" /></td><td class="p-2"><input data-rate="desk" type="number" min="0" value="${rate.desk_price}" class="field w-24 px-2 py-1 text-xs" /></td><td class="p-2 text-center"><input data-rate="deliverable" type="checkbox" ${rate.is_deliverable ? 'checked' : ''} /></td></tr>`).join('')}</tbody></table>`;
+  table.innerHTML = `<table class="w-full text-xs"><thead class="bg-slate-50"><tr><th class="p-2 text-right">الولاية</th><th class="p-2">للمنزل</th><th class="p-2">للمكتب</th><th class="p-2">متاح</th></tr></thead><tbody>${rates.map((rate) => `<tr data-wilaya-row="${rate.wilaya_code}" class="border-t border-slate-200/10"><td class="p-2 font-bold">${rate.wilaya_code} - ${escapeHtml(rate.wilaya_name)}</td><td class="p-2"><input data-rate="home" type="number" min="0" value="${rate.home_price}" class="field w-24 px-2 py-1 text-xs" /></td><td class="p-2"><input data-rate="desk" type="number" min="0" value="${rate.desk_price}" class="field w-24 px-2 py-1 text-xs" /></td><td class="p-2 text-center"><input data-rate="deliverable" type="checkbox" ${rate.is_deliverable ? 'checked' : ''} /></td></tr>`).join('')}</tbody></table>`;
   document.getElementById('customRatesSearch')?.addEventListener('input', filterCustomRates, { once: true });
 }
 
