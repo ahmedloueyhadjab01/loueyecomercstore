@@ -132,8 +132,12 @@ router.get("/store-info/:identifier", async (req, res) => {
   const identifier = req.params.identifier;
   let vendor;
   if (identifier === '1' || identifier === 'default') {
-    // Single-tenant mode: grab the first admin if ID=1 doesn't match
-    vendor = await db.get("SELECT id, name, store_name, store_slug FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+    // Single-tenant mode
+    if (process.env.MAIN_STORE_USER_ID) {
+      vendor = await db.get("SELECT id, name, store_name, store_slug FROM users WHERE id = $1", [process.env.MAIN_STORE_USER_ID]);
+    } else {
+      vendor = await db.get("SELECT id, name, store_name, store_slug FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+    }
   } else if (/^\d+$/.test(identifier)) {
     vendor = await db.get("SELECT id, name, store_name, store_slug FROM users WHERE id = $1", [parseInt(identifier, 10)]);
   } else {

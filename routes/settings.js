@@ -63,7 +63,7 @@ router.post('/reset-stats', requireAuth, async (req, res) => {
 
   try {
     await db.transaction(async (trx) => {
-      const activeOrders = await trx.all("SELECT items FROM orders WHERE (user_id = $1 OR user_id IS NULL) AND status IN ('قيد المعالجة', 'قيد التوصيل')", [req.user.id]);
+      const activeOrders = await trx.all("SELECT items FROM orders WHERE user_id = $1 AND status IN ('قيد المعالجة', 'قيد التوصيل')", [req.user.id]);
       for (const order of activeOrders) {
         const items = typeof order.items === 'string' ? JSON.parse(order.items || '[]') : (order.items || []);
         for (const item of items) {
@@ -74,10 +74,10 @@ router.post('/reset-stats', requireAuth, async (req, res) => {
           }
         }
       }
-      await trx.query('DELETE FROM orders WHERE user_id = $1 OR user_id IS NULL OR (user_id IS NULL AND $1 IS NULL)', [req.user.id]);
-      await trx.query('DELETE FROM campaign_ad_spend WHERE user_id = $1 OR user_id IS NULL', [req.user.id]);
+      await trx.query('DELETE FROM orders WHERE user_id = $1', [req.user.id]);
+      await trx.query('DELETE FROM campaign_ad_spend WHERE user_id = $1', [req.user.id]);
       await ensureFinancialArchive(req.user.id, trx.client);
-      await trx.query('UPDATE financial_archive SET archived_sales = 0, archived_cogs = 0, archived_shipping_cost = 0 WHERE user_id = $1 OR user_id IS NULL', [req.user.id]);
+      await trx.query('UPDATE financial_archive SET archived_sales = 0, archived_cogs = 0, archived_shipping_cost = 0 WHERE user_id = $1', [req.user.id]);
     });
     res.json({ success: true, message: 'تم مسح الإحصائيات والطلبات بنجاح.' });
   } catch (err) {
@@ -99,7 +99,7 @@ router.post('/reset-store', requireAuth, async (req, res) => {
 
   try {
     await db.transaction(async (trx) => {
-      const activeOrders = await trx.all("SELECT items FROM orders WHERE (user_id = $1 OR user_id IS NULL) AND status IN ('قيد المعالجة', 'قيد التوصيل')", [req.user.id]);
+      const activeOrders = await trx.all("SELECT items FROM orders WHERE user_id = $1 AND status IN ('قيد المعالجة', 'قيد التوصيل')", [req.user.id]);
       for (const order of activeOrders) {
         const items = typeof order.items === 'string' ? JSON.parse(order.items || '[]') : (order.items || []);
         for (const item of items) {
@@ -110,16 +110,16 @@ router.post('/reset-store', requireAuth, async (req, res) => {
           }
         }
       }
-      await trx.query('DELETE FROM orders WHERE user_id = $1 OR user_id IS NULL OR (user_id IS NULL AND $1 IS NULL)', [req.user.id]);
-      await trx.query('DELETE FROM campaign_ad_spend WHERE user_id = $1 OR user_id IS NULL', [req.user.id]);
-      await trx.query('DELETE FROM stock_restocks WHERE product_id IN (SELECT id FROM products WHERE user_id = $1 OR user_id IS NULL)', [req.user.id]);
-      await trx.query('DELETE FROM variant_restocks WHERE variant_id IN (SELECT pv.id FROM product_variants pv JOIN products p ON pv.product_id = p.id WHERE (p.user_id = $1 OR ($1 IS NULL AND p.user_id IS NULL)))', [req.user.id]);
-      await trx.query('DELETE FROM product_variants WHERE product_id IN (SELECT id FROM products WHERE user_id = $1 OR user_id IS NULL)', [req.user.id]);
-      await trx.query('DELETE FROM products WHERE user_id = $1 OR user_id IS NULL', [req.user.id]);
-      await trx.query('DELETE FROM categories WHERE user_id = $1 OR user_id IS NULL', [req.user.id]);
+      await trx.query('DELETE FROM orders WHERE user_id = $1', [req.user.id]);
+      await trx.query('DELETE FROM campaign_ad_spend WHERE user_id = $1', [req.user.id]);
+      await trx.query('DELETE FROM stock_restocks WHERE product_id IN (SELECT id FROM products WHERE user_id = $1)', [req.user.id]);
+      await trx.query('DELETE FROM variant_restocks WHERE variant_id IN (SELECT pv.id FROM product_variants pv JOIN products p ON pv.product_id = p.id WHERE p.user_id = $1)', [req.user.id]);
+      await trx.query('DELETE FROM product_variants WHERE product_id IN (SELECT id FROM products WHERE user_id = $1)', [req.user.id]);
+      await trx.query('DELETE FROM products WHERE user_id = $1', [req.user.id]);
+      await trx.query('DELETE FROM categories WHERE user_id = $1', [req.user.id]);
       await trx.query('DELETE FROM settings WHERE user_id = $1', [req.user.id]);
       await ensureFinancialArchive(req.user.id, trx.client);
-      await trx.query('UPDATE financial_archive SET archived_sales = 0, archived_cogs = 0, archived_shipping_cost = 0 WHERE user_id = $1 OR user_id IS NULL', [req.user.id]);
+      await trx.query('UPDATE financial_archive SET archived_sales = 0, archived_cogs = 0, archived_shipping_cost = 0 WHERE user_id = $1', [req.user.id]);
     });
     res.json({ success: true, message: 'تمت إعادة تعيين متجرك بالكامل مع الاحتفاظ بأسعار التوصيل ✅' });
   } catch (err) {
