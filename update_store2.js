@@ -1,0 +1,83 @@
+﻿const fs = require("fs");
+let content = fs.readFileSync("public/js/store2.js", "utf8");
+
+const oldCode = `  const currentPhone = (form.phone?.value || '').trim();
+  if (savedC && savedC.phone && currentPhone && savedC.phone !== currentPhone) {
+    await new Promise(resolve => {
+      const modal = document.getElementById('conflictModal');
+      if (!modal) { resolve(); return; }
+      const oldBox = document.getElementById('conflictOldBox');
+      const newBox = document.getElementById('conflictNewBox');
+      
+      if (oldBox) oldBox.innerHTML = '<span style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">📦 بيانات طلب سابق</span>' + (savedC.customer_name || '') + ' — ' + savedC.phone;
+      if (newBox) newBox.innerHTML = '<span style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">✏️ البيانات الجديدة التي أدخلتها</span>' + ((form.customer_name?.value) || '—') + ' — ' + currentPhone;
+      
+      modal.style.display = 'flex';
+      
+      document.getElementById('conflictUseOld').onclick = () => {
+        if (form.customer_name) form.customer_name.value = savedC.customer_name || '';
+        if (form.phone) form.phone.value = savedC.phone || '';
+        if (form.address) form.address.value = savedC.address || '';
+        modal.style.display = 'none';
+        resolve();
+      };
+      document.getElementById('conflictUseNew').onclick = () => {
+        modal.style.display = 'none';
+        resolve();
+      };
+    });
+  }`;
+
+const newCode = `  const currentPhone = (form.phone?.value || '').trim();
+  const currentWilaya = parseInt(form.wilaya_code?.value, 10);
+  const currentAddress = (form.address?.value || '').trim();
+  
+  const phoneChanged = savedC && savedC.phone && currentPhone && savedC.phone !== currentPhone;
+  const wilayaChanged = savedC && savedC.wilaya_code && currentWilaya && parseInt(savedC.wilaya_code, 10) !== currentWilaya;
+  const addressChanged = savedC && savedC.address && currentAddress && savedC.address !== currentAddress;
+
+  if (phoneChanged || wilayaChanged || addressChanged) {
+    await new Promise(resolve => {
+      const modal = document.getElementById('conflictModal');
+      if (!modal) { resolve(); return; }
+      const oldBox = document.getElementById('conflictOldBox');
+      const newBox = document.getElementById('conflictNewBox');
+      
+      const wilayaNameOld = typeof Locations !== 'undefined' ? (Locations.getWilayaName(savedC.wilaya_code) || savedC.wilaya_code) : savedC.wilaya_code;
+      const wilayaNameNew = typeof Locations !== 'undefined' ? (Locations.getWilayaName(currentWilaya) || currentWilaya) : currentWilaya;
+
+      if (oldBox) oldBox.innerHTML = '<span style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">📦 بيانات طلب سابق</span>' + (savedC.customer_name || '—') + ' — ' + (savedC.phone || '—') + '<br>' + wilayaNameOld + ' — ' + (savedC.address || '');
+      if (newBox) newBox.innerHTML = '<span style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">✏️ البيانات الجديدة التي أدخلتها</span>' + ((form.customer_name?.value) || '—') + ' — ' + (currentPhone || '—') + '<br>' + wilayaNameNew + ' — ' + currentAddress;
+      
+      modal.style.display = 'flex';
+      
+      document.getElementById('conflictUseOld').onclick = async () => {
+        if (form.customer_name) form.customer_name.value = savedC.customer_name || '';
+        if (form.phone) form.phone.value = savedC.phone || '';
+        if (form.address) form.address.value = savedC.address || '';
+        if (form.wilaya_code) {
+           form.wilaya_code.value = savedC.wilaya_code;
+           // Trigger change event so commune loads
+           form.wilaya_code.dispatchEvent(new Event('change'));
+        }
+        if (form.commune && savedC.commune) {
+           // Wait a tiny bit for commune to populate if needed
+           setTimeout(() => { form.commune.value = savedC.commune; }, 300);
+        }
+        modal.style.display = 'none';
+        resolve();
+      };
+      document.getElementById('conflictUseNew').onclick = () => {
+        modal.style.display = 'none';
+        resolve();
+      };
+    });
+  }`;
+
+if (content.includes(oldCode)) {
+  content = content.replace(oldCode, newCode);
+  fs.writeFileSync("public/js/store2.js", content, "utf8");
+  console.log("store2.js updated!");
+} else {
+  console.log("Could not find old code in store2.js");
+}
