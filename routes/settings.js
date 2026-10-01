@@ -176,3 +176,5 @@ router.put("/profile", requireAuth, async (req, res) => {
 
 module.exports = router;
 
+
+// Trigger Render deployment 2026-10-01 20:33:46
