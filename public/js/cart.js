@@ -5,7 +5,7 @@ const Cart = {
 
   get() {
     try {
-      return JSON.parse(localStorage.getItem(this.KEY)) || [];
+      const parsed = JSON.parse(localStorage.getItem(this.KEY)); return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }

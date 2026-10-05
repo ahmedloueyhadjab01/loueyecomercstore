@@ -86,11 +86,21 @@ function renderSocialIcons(container, links, { size = 'w-12 h-12' } = {}) {
     }))
     .filter((e) => e.url);
 
+  const section = container.closest('[data-social-section]');
+  const divider = document.getElementById('footerSocialDivider');
   if (!entries.length) {
-    container.innerHTML = '';
+    container.replaceChildren();
+    container.classList.remove('flex');
+    container.hidden = true;
+    if (section) section.hidden = true;
+    if (divider) divider.hidden = true;
     return;
   }
 
+  container.hidden = false;
+  container.classList.add('flex');
+  if (section) section.hidden = false;
+  if (divider) divider.hidden = false;
   container.innerHTML = entries
     .map(
       (e) => `
@@ -100,7 +110,7 @@ function renderSocialIcons(container, links, { size = 'w-12 h-12' } = {}) {
             style="background:${e.color}; color:#fff; min-width:48px; min-height:48px; border:2px solid rgba(0,0,0,0.1);">
         ${e.svg}
       </span>
-      <span class="text-xs font-bold text-ink/70 max-w-[80px] truncate text-center" dir="ltr" style="font-size:10px">${e.handle || e.label}</span>
+      <span class="text-xs font-bold text-slate-500 max-w-[80px] truncate text-center" dir="ltr" style="font-size:10px">${e.handle || e.label}</span>
     </a>`
     )
     .join('');
@@ -113,5 +123,10 @@ async function initSocialIcons(containerId, opts = {}) {
   const links = await fetchSocialLinks(storeId);
   renderSocialIcons(container, links, opts);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const storeId = new URLSearchParams(window.location.search).get('store_id');
+  initSocialIcons('footerSocialLinks', { storeId, size: 'w-10 h-10' });
+}, { once: true });
 
 
