@@ -341,6 +341,44 @@
        if(i) i.value = QTY;
     }
     
+    
+    function changeExpressColor(color) {
+      const sId = 'sizes_' + btoa(encodeURIComponent(color)).replace(/=/g, '');
+      document.querySelectorAll('.size-group').forEach(el => {
+        el.classList.remove('flex');
+        el.classList.add('hidden');
+      });
+      const target = document.getElementById(sId);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('flex');
+        const firstRadio = target.querySelector('input[type="radio"]');
+        if (firstRadio) {
+          firstRadio.checked = true;
+          if (typeof updateExpressVariant === 'function') updateExpressVariant();
+        }
+      }
+    }
+
+    
+    window.changeExpressColor = function(color) {
+      const sId = 'sizes_' + btoa(encodeURIComponent(color)).replace(/=/g, '');
+      document.querySelectorAll('.size-group').forEach(el => {
+        el.classList.remove('flex');
+        el.classList.add('hidden');
+      });
+      const target = document.getElementById(sId);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('flex');
+        const firstRadio = target.querySelector('input[type="radio"]');
+        if (firstRadio) {
+          firstRadio.checked = true;
+          if (typeof updateExpressVariant === 'function') updateExpressVariant();
+        }
+      }
+    };
+
     function updateExpressVariant() {
        const checked = document.querySelector('input[name="expressVariant"]:checked');
        if (checked) {
@@ -431,28 +469,7 @@
                    </div>
                  `).join('')}`}
                </div>
-               <script>
-                 if (!window.expressColorScriptAdded) {
-                   window.changeExpressColor = function(color) {
-                     const sId = 'sizes_' + btoa(encodeURIComponent(color)).replace(/=/g, '');
-                     document.querySelectorAll('.size-group').forEach(el => {
-                       el.classList.remove('flex');
-                       el.classList.add('hidden');
-                     });
-                     const target = document.getElementById(sId);
-                     if (target) {
-                       target.classList.remove('hidden');
-                       target.classList.add('flex');
-                       const firstRadio = target.querySelector('input[type="radio"]');
-                       if (firstRadio) {
-                         firstRadio.checked = true;
-                         if (typeof updateExpressVariant === 'function') updateExpressVariant();
-                       }
-                     }
-                   };
-                   window.expressColorScriptAdded = true;
-                 }
-               </script>
+
              `;
            }
         }
