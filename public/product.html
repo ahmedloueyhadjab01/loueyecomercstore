@@ -387,21 +387,74 @@
         let variantsHtml = '';
         if (product.variants && product.variants.length > 0) {
            SELECTED_VARIANT_ID = product.variants[0].id;
-           variantsHtml = `
-             <div class="mb-5">
-               <p class="block text-sm font-bold text-slate-700 mb-2">اختر المتغير (اللون/المقاس)</p>
-               <div class="flex flex-wrap gap-2">
-                 ${product.variants.map((v, idx) => `
-                   <label class="cursor-pointer relative">
-                     <input type="radio" name="expressVariant" value="${v.id}" class="peer hidden" ${idx===0?'checked':''} onchange="updateExpressVariant()">
-                     <div class="px-4 py-2 border-2 border-slate-200 rounded-lg peer-checked:border-[#E52F20] peer-checked:bg-red-50 peer-checked:text-[#E52F20] font-bold text-sm text-slate-600 transition-colors">
-                       ${escapeHtml(v.color || '')} ${escapeHtml(v.size || '')}
-                     </div>
-                   </label>
-                 `).join('')}
+
+           const colorMap = new Map();
+           const distinctColors = [];
+           product.variants.forEach(v => {
+             const c = (v.color || '').trim();
+             if (!colorMap.has(c)) {
+               colorMap.set(c, []);
+               distinctColors.push(c);
+             }
+             colorMap.get(c).push(v);
+           });
+
+           if (distinctColors.length > 0) {
+             const safeId = (str) => 'sizes_' + btoa(encodeURIComponent(str)).replace(/=/g, '');
+             
+             variantsHtml = `
+               <div class="mb-4">
+                 <p class="block text-sm font-bold text-slate-700 mb-2">اختر اللون</p>
+                 <div class="flex flex-wrap gap-2">
+                   ${`${distinctColors.map((c, idx) => `
+                     <label class="cursor-pointer relative">
+                       <input type="radio" name="expressColor" value="${escapeHtml(c)}" class="peer hidden" ${idx===0?'checked':''} onchange="changeExpressColor('${escapeHtml(c).replace(/'/g, "\'")}')">
+                       <div class="px-4 py-2 border-2 border-slate-200 rounded-lg peer-checked:border-[#E52F20] peer-checked:bg-red-50 peer-checked:text-[#E52F20] font-bold text-sm text-slate-600 transition-colors">
+                         ${escapeHtml(c || 'افتراضي')}
+                       </div>
+                     </label>
+                   `).join('')}`}
+                 </div>
                </div>
-             </div>
-           `;
+               <div class="mb-5">
+                 <p class="block text-sm font-bold text-slate-700 mb-2">اختر المقاس</p>
+                 ${`${distinctColors.map((c, cIdx) => `
+                   <div id="${safeId(c)}" class="size-group flex-wrap gap-2 ${cIdx === 0 ? 'flex' : 'hidden'}">
+                     ${`${colorMap.get(c).map((v, vIdx) => `
+                       <label class="cursor-pointer relative">
+                         <input type="radio" name="expressVariant" value="${v.id}" class="peer hidden" ${cIdx===0 && vIdx===0 ? 'checked' : ''} onchange="updateExpressVariant()">
+                         <div class="px-4 py-2 border-2 border-slate-200 rounded-lg peer-checked:border-[#E52F20] peer-checked:bg-red-50 peer-checked:text-[#E52F20] font-bold text-sm text-slate-600 transition-colors">
+                           ${escapeHtml(v.size || v.label || 'افتراضي')}
+                         </div>
+                       </label>
+                     `).join('')}`}
+                   </div>
+                 `).join('')}`}
+               </div>
+               <script>
+                 if (!window.expressColorScriptAdded) {
+                   window.changeExpressColor = function(color) {
+                     const sId = 'sizes_' + btoa(encodeURIComponent(color)).replace(/=/g, '');
+                     document.querySelectorAll('.size-group').forEach(el => {
+                       el.classList.remove('flex');
+                       el.classList.add('hidden');
+                     });
+                     const target = document.getElementById(sId);
+                     if (target) {
+                       target.classList.remove('hidden');
+                       target.classList.add('flex');
+                       const firstRadio = target.querySelector('input[type="radio"]');
+                       if (firstRadio) {
+                         firstRadio.checked = true;
+                         if (typeof updateExpressVariant === 'function') updateExpressVariant();
+                       }
+                     }
+                   };
+                   window.expressColorScriptAdded = true;
+                 }
+               </script>
+             `;
+           }
         }
 
         const svgHand = `<svg class="w-8 h-8 text-[#E52F20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
