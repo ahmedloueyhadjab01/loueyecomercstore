@@ -17,7 +17,13 @@ let STORE_LOOKUP_FAILED = false;
       found = true;
     }
   }
-  // تُدار الإحالة والمصدر في track.js
+  // احتفظ بـ referrer إذا لم يكن هناك utm_source (مثلاً زيارة عضوية من موقع آخر)
+  if (!found && document.referrer && !sessionStorage.getItem('utm_source')) {
+    try {
+      const ref = new URL(document.referrer);
+      sessionStorage.setItem('utm_source', ref.hostname);
+    } catch {}
+  }
 })();
 
 function getUtmParams() {
@@ -132,7 +138,7 @@ async function loadProducts() {
   const grid = document.getElementById('productsGrid');
   if (grid) {
     grid.innerHTML = Array(8).fill(`
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col animate-pulse">
+      <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden flex flex-col animate-pulse">
         <div class="aspect-[4/5] bg-gray-200"></div>
         <div class="p-4 flex flex-col gap-2">
           <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -176,7 +182,7 @@ async function loadProducts() {
     const outOfStock = p.stock <= 0;
     const card = document.createElement('div');
       card.onclick = () => location.href = prodUrl;
-    card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer';
+    card.className = 'bg-white rounded-2xl shadow-md hover:shadow-xl border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer';
 
     // جمع الألوان الفريدة إن وجدت
     let colorDotsHtml = '';
@@ -193,7 +199,7 @@ async function loadProducts() {
         colorDotsHtml = `
           <div class="flex items-center gap-1 mt-1">
             ${distinctColors.slice(0, 5).map(c => `
-              <span class="w-3.5 h-3.5 rounded-full border-2 border-ink shadow-xs inline-block" title="${escapeHtml(c.color)}" style="background-color: ${escapeHtml(c.color_code || '#ddd')}"></span>
+              <span class="w-3.5 h-3.5 rounded-full border-2 border-ink shadow-xs inline-block" title="${escapeHtml(c.color)}" style="background-color: ${escapeHtml(safeColorCode(c.color_code))}"></span>
             `).join('')}
             ${distinctColors.length > 5 ? `<span class="text-[10px] text-ink font-black">+${distinctColors.length - 5}</span>` : ''}
           </div>
@@ -206,41 +212,45 @@ async function loadProducts() {
 
     const isWholesale = p.pack_quantity && Number(p.pack_quantity) > 1;
     const packBadge = isWholesale
-      ? `<span class="text-[11px] bg-forest/10 text-forest-dark font-black px-2 py-0.5 rounded-md">عبوة (${p.pack_quantity} قطعة)</span>`
-      : `<span class="text-[11px] bg-sand-deep text-ink/70 font-black px-2 py-0.5 rounded-md">قطعة واحدة</span>`;
+      ? `<span class="text-[11px] bg-forest/10 text-forest-dark font-black px-2 py-0.5 rounded-xl">عبوة (${p.pack_quantity} قطعة)</span>`
+      : `<span class="text-[11px] bg-sand-deep text-ink/70 font-black px-2 py-0.5 rounded-xl">قطعة واحدة</span>`;
     const perPieceText = isWholesale
       ? `<span class="text-[10px] text-ink/60 font-bold">سعر القطعة: ${money(Math.round(p.price / p.pack_quantity))}</span>`
       : '';
     const addBtnLabel = outOfStock
-      ? 'غير متوفر'
-      : (p.has_variants ? 'اختر الخيارات' : (isWholesale ? 'أضف للسلة' : 'أضف للسلة'));
+      ? 'غير متوفر حاليًا'
+      : (p.has_variants ? 'اختر الخيارات ' : (isWholesale ? 'أضف العبوة للسلة ' : 'أضف للسلة '));
 
     
-      const mainImg = p.image || '/img/placeholder.svg';
-      card.onclick = () => location.href = prodUrl;
+      // Clean SVGs instead of emojis, beautiful blue theme
+      const mainImg = safeImageUrl(p.image);
       card.innerHTML = `
-        <div class="relative aspect-[4/5] bg-gray-100 overflow-hidden">
-          <img src="${escapeHtml(mainImg)}" class="product-img opacity-0 w-full h-full object-cover transition-all duration-500 ${outOfStock ? 'grayscale opacity-60' : 'group-hover:scale-105'}" />
-          ${outOfStock ? '<span class="absolute top-2 right-2 bg-slate-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">نفد</span>' : ''}
-          ${p.compare_price > p.price ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-${Math.round((1 - p.price/p.compare_price)*100)}%</span>` : ''}
+        <div class="relative aspect-[4/5] bg-gray-100 overflow-hidden cursor-pointer">
+          <img src="${escapeHtml(mainImg)}" class="product-img opacity-0 w-full h-full object-cover transition-all duration-700 ${outOfStock ? 'grayscale' : 'group-hover:scale-110'}" />
+          ${outOfStock ? '<span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded shadow-md">نفد</span>' : ''}
+          <div class="absolute inset-0 bg-blue-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
-        <div class="p-3 flex flex-col gap-1.5 flex-1">
-          <h3 class="font-bold text-sm text-slate-800 line-clamp-2 leading-snug">${escapeHtml(p.name)}</h3>
-          ${colorDotsHtml ? `<div class="flex items-center gap-1">${colorDotsHtml}</div>` : ''}
-          <div class="mt-auto pt-2 flex items-center justify-between gap-2">
+        <div class="p-4 flex flex-col gap-2 flex-1">
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="font-black text-sm text-gray-900 line-clamp-2 leading-snug cursor-pointer hover:text-slate-900 transition-colors">${escapeHtml(p.name)}</h3>
+            ${p.compare_price > p.price ? `<span class="bg-blue-50 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0">-${Math.round((1 - p.price/p.compare_price)*100)}%</span>` : ''}
+          </div>
+          ${colorDotsHtml ? `<div class="flex items-center gap-1.5 mt-0.5">${colorDotsHtml}</div>` : ''}
+          <div class="mt-auto pt-2 flex items-center justify-between">
             <div class="flex flex-col">
-              <span class="text-base font-bold text-slate-900">${money(p.price)}</span>
-              ${p.compare_price > p.price ? `<span class="text-[10px] text-slate-400 line-through">${money(p.compare_price)}</span>` : ''}
+              <span class="text-lg font-black text-slate-900">${money(p.price)}</span>
+              ${p.compare_price > p.price ? `<span class="text-[10px] text-gray-400 font-bold line-through">${money(p.compare_price)}</span>` : ''}
             </div>
-            <button class="${outOfStock ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-blue-800 shadow-md hover:shadow-lg'} add-to-cart w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 hover:-translate-y-0.5">
-              ${outOfStock 
-                ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>'
-                : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'
-              }
+            <button class="${outOfStock ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg hover:shadow-xl transition-shadow duration-300 hover:shadow-lg hover:-translate-y-0.5'} add-to-cart w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300">
+              ${outOfStock ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>' : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'}
             </button>
           </div>
         </div>
       `;
+
+      card.addEventListener('click', (event) => {
+        if (!event.target.closest('.add-to-cart')) location.href = prodUrl;
+      });
 
       // Attach onload safely for CSP
       const imgEl = card.querySelector('.product-img');
@@ -266,11 +276,11 @@ async function loadProducts() {
           const inCart = Cart.get().find((i) => i.id === p.id && !i.variant_id);
           const currentQty = inCart ? inCart.qty : 0;
           if (currentQty + 1 > p.stock) {
-            showToast(`الكمية المتوفرة من هذا المنتج ${p.stock} فقط ⚠️`);
+            showToast(`الكمية المتوفرة من هذا المنتج ${p.stock} فقط ️`);
             return;
           }
           Cart.add(p, 1);
-          showToast('تمت إضافة المنتج إلى السلة ✅');
+          showToast('تمت إضافة المنتج إلى السلة ');
           openCart();
         });
       }
@@ -291,10 +301,10 @@ async function loadProducts() {
         catSection.innerHTML = `
           <div class="flex justify-between items-center mb-4 px-1">
             <h2 class="text-lg sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-              <span class="w-1.5 h-6 sm:h-8 bg-red-700 rounded-full inline-block"></span> 
+              <span class="w-1.5 h-6 sm:h-8 bg-slate-900 rounded-full inline-block"></span> 
               ${escapeHtml(catName)}
             </h2>
-            <button onclick="CURRENT_CATEGORY='${p.category_id || ''}'; loadProducts(); window.scrollTo(0,0);" class="text-blue-600 text-xs sm:text-sm font-bold hover:bg-blue-50 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
+            <button onclick="CURRENT_CATEGORY='${p.category_id || ''}'; loadProducts(); window.scrollTo(0,0);" class="text-slate-900 text-xs sm:text-sm font-bold hover:bg-blue-50 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
               عرض الكل 
               <svg class="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </button>
@@ -318,6 +328,19 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function safeColorCode(value) {
+  return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : '#ddd';
+}
+
+function safeImageUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) return '/img/placeholder.svg';
+  try {
+    const url = new URL(value, window.location.origin);
+    if (url.protocol === 'https:' || (url.protocol === 'http:' && url.origin === window.location.origin)) return url.href;
+  } catch {}
+  return '/img/placeholder.svg';
 }
 
 function showToast(msg) {
@@ -352,18 +375,18 @@ function renderCartDrawer() {
     row.className = 'flex items-center gap-3 border-b-2 border-ink/20 pb-3';
     const totalPieces = (item.pack_quantity || 1) * item.qty;
     row.innerHTML = `
-      <img src="${escapeHtml(item.image || '/img/placeholder.svg')}" class="w-14 h-14 object-cover rounded-lg bg-sand-deep border-2 border-ink shadow-2xs" />
+      <img src="${escapeHtml(safeImageUrl(item.image))}" class="w-14 h-14 object-cover rounded-2xl bg-sand-deep border-2 border-ink shadow-2xs" />
       <div class="flex-1">
         <p class="text-sm font-black text-ink line-clamp-1">${escapeHtml(item.name)}${item.variant_label ? ` <span class="text-xs text-forest-dark font-black">(${escapeHtml(item.variant_label)})</span>` : ''}</p>
         <p class="text-xs text-ink font-bold">${money(item.price)} <span class="text-[10px] text-ink/60 font-normal">/ عبوة</span></p>
         <p class="text-[11px] text-forest-dark font-black">المجموع: ${totalPieces} قطعة (${item.qty} عبوة)</p>
         <div class="flex items-center gap-2 mt-1">
-          <button class="qty-btn dec w-8 h-8 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-base flex items-center justify-center hover:border-blue-400 hover:text-red-700 transition-all">-</button>
+          <button class="qty-btn dec btn-outline rounded-2xl w-6 h-6 text-sm font-black flex items-center justify-center">-</button>
           <span class="text-sm font-black text-ink">${item.qty} عبوة</span>
-          <button class="qty-btn inc w-8 h-8 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-base flex items-center justify-center hover:border-blue-400 hover:text-red-700 transition-all">+</button>
+          <button class="qty-btn inc btn-outline rounded-2xl w-6 h-6 text-sm font-black flex items-center justify-center">+</button>
         </div>
       </div>
-      <button class="remove-btn w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all text-base">حذف</button>
+      <button class="remove-btn text-terracotta text-xs font-black hover:underline">حذف</button>
     `;
     row.querySelector('.inc').addEventListener('click', () => { Cart.updateQty(item.id, item.variant_id, item.qty + 1); renderCartDrawer(); });
     row.querySelector('.dec').addEventListener('click', () => { Cart.updateQty(item.id, item.variant_id, item.qty - 1); renderCartDrawer(); });
@@ -376,22 +399,17 @@ function renderCartDrawer() {
 
 function openCart() {
   renderCartDrawer();
-  const drawer = document.getElementById('cartDrawer');
-  const content = document.getElementById('cartDrawerContent');
-  if(drawer) drawer.classList.remove('hidden');
-  if(content) setTimeout(() => content.classList.remove('translate-x-full'), 10);
+  document.getElementById('checkoutOverlay' /* renamed overlay */).classList.remove('hidden');
+  document.getElementById('cartDrawer').classList.add('open');
 }
 function closeCart() {
-  const drawer = document.getElementById('cartDrawer');
-  const content = document.getElementById('cartDrawerContent');
-  if(content) content.classList.add('translate-x-full');
-  if(drawer) setTimeout(() => drawer.classList.add('hidden'), 300);
+  document.getElementById('checkoutOverlay' /* renamed overlay */).classList.add('hidden');
+  document.getElementById('cartDrawer').classList.remove('open');
 }
 
 document.getElementById('cartBtn')?.addEventListener('click', openCart);
 document.getElementById('closeCart')?.addEventListener('click', closeCart);
-document.getElementById('cartDrawer')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) closeCart(); });
-  document.getElementById('checkoutOverlay')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) { document.getElementById('checkoutOverlay').classList.add('hidden'); } });
+document.getElementById('checkoutOverlay' /* renamed overlay */).addEventListener('click', closeCart);
 
 // ---------- إتمام الطلب: الولاية / البلدية / نوع التوصيل ----------
 const wilayaSelect = document.getElementById('custWilaya');
@@ -464,7 +482,7 @@ async function updateDeliveryPrices() {
       if (data.is_unavailable) {
         priceEl.innerHTML = '<span class="text-rose-700 font-black">غير متاح</span>';
       } else if (data.is_free) {
-        priceEl.innerHTML = '<span class="text-forest font-black">مجاني 🎉</span>';
+        priceEl.innerHTML = '<span class="text-forest font-black">مجاني </span>';
       } else {
         priceEl.textContent = money(data.price);
       }
@@ -521,7 +539,37 @@ document.getElementById('checkoutForm')?.addEventListener('submit', async (e) =>
     submitBtn.textContent = 'جارٍ تسجيل الطلب...';
   }
 
-  const storeId = CURRENT_STORE_ID || (Cart.get()[0] && Cart.get()[0].user_id) || 1;
+  try {
+    await CustomerConflict.resolve(form, {
+      loadCommunes: async (code) => {
+        wilayaSelect.value = String(code);
+        await Locations.loadCommunes(code, communeSelect);
+      },
+      afterRestore: updateDeliveryPrices,
+      getWilayaName: (code) => Locations.getRate(code)?.wilaya_name || '',
+    });
+  } catch (err) {
+    errorEl.textContent = 'تعذر استعادة بيانات الولاية والبلدية السابقة.';
+    errorEl.classList.remove('hidden');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = origText;
+    }
+    return;
+  }
+
+  const cartItems = Cart.get();
+  const storeId = CURRENT_STORE_ID || (cartItems[0] && cartItems[0].user_id);
+  if (!storeId || cartItems.some((item) => !item.user_id || String(item.user_id) !== String(storeId))) {
+    errorEl.textContent = 'يجب أن تحتوي الطلبية على منتجات من متجر واحد. أزل المنتجات الأخرى من السلة.';
+    errorEl.classList.remove('hidden');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = origText;
+    }
+    return;
+  }
+
   const payload = {
     customer_name: form.customer_name.value.trim(),
     phone: form.phone.value.trim(),
@@ -529,7 +577,7 @@ document.getElementById('checkoutForm')?.addEventListener('submit', async (e) =>
     wilaya_code: Number(wilayaSelect.value),
     commune: (communeSelect ? communeSelect.value : '').trim(),
     delivery_type: CURRENT_DELIVERY_TYPE,
-    items: Cart.get().map((i) => ({ id: i.id, qty: i.qty, variant_id: i.variant_id || undefined })),
+    items: cartItems.map((i) => ({ id: i.id, qty: i.qty, variant_id: i.variant_id || undefined })),
     store_id: storeId,
     ...getUtmParams(),
   };
@@ -553,13 +601,14 @@ document.getElementById('checkoutForm')?.addEventListener('submit', async (e) =>
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'حدث خطأ أثناء تسجيل الطلب');
 
+    CustomerConflict.save(form);
     Cart.clear();
     renderCartDrawer();
     document.getElementById('checkoutOverlay').classList.add('hidden');
     form.reset();
     if(communeSelect) communeSelect.disabled = true;
     if(communeSelect) communeSelect.innerHTML = '<option value="">البلدية...</option>';
-    showToast(`تم إرسال طلبك بنجاح 🎉 رقم الطلب: ${data.order_id}`);
+    showToast(`تم إرسال طلبك بنجاح  رقم الطلب: ${data.order_id}`);
   } catch (err) {
     errorEl.textContent = err.message;
     errorEl.classList.remove('hidden');
@@ -670,7 +719,7 @@ document.getElementById('searchFormMobile')?.addEventListener('submit', (e) => {
   await loadProducts();
   if (typeof initSocialIcons === 'function') {
     initSocialIcons('socialIconsFooter', { storeId: CURRENT_STORE_ID });
-    initSocialIcons('socialIconsTopBar', { storeId: CURRENT_STORE_ID, size: 'w-8 h-8' });
   }
 })();
+
 
