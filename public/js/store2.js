@@ -473,7 +473,7 @@ async function updateDeliveryPrices() {
       const data = isDesk ? deskData : homeData;
       
       if (data.is_unavailable) {
-        priceEl.innerHTML = '<span class="text-rose-700 font-black">غير متاح</span>';
+        priceEl.innerHTML = '<span class="text-primary-dark font-black">غير متاح</span>';
       } else if (data.is_free) {
         priceEl.innerHTML = '<span class="text-forest font-black">مجاني 🎉</span>';
       } else {
