@@ -8,13 +8,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="/js/track.js?v=1"></script>
+  <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
     <style>
-    :root { --primary: #E52F20; --bg: #ffffff; --surface: #ffffff; --border: #e2e8f0; --text: #0f172a; --muted: #64748b; --radius: 0.875rem; }
+    :root { --primary: #e11d48; --bg: #ffffff; --surface: #ffffff; --border: #e2e8f0; --text: #0f172a; --muted: #64748b; --radius: 0.875rem;  --glass-bg: rgba(255,255,255,0.97); }
     * { box-sizing: border-box; }
     body { font-family: 'IBM Plex Sans Arabic', sans-serif; background-color: var(--bg); color: var(--text); }
-    .glass-nav { background: rgba(255,255,255,0.97); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); box-shadow: 0 1px 8px rgba(0,0,0,0.05); }
-    .bottom-nav { background: rgba(255,255,255,0.99); backdrop-filter: blur(16px); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -2px 12px rgba(0,0,0,0.05); }
+    .glass-nav { background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); box-shadow: 0 1px 8px rgba(0,0,0,0.05); }
+    .bottom-nav { background: var(--glass-bg); backdrop-filter: blur(16px); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -2px 12px rgba(0,0,0,0.05); }
     .nav-item { display: flex; flex-direction: column; /*  */ justify-content: center; width: 100%; height: 100%; color: #94a3b8; transition: all 0.2s; position: relative; }
     .nav-item:hover, .nav-item.active { color: var(--primary); }
     .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; transition: transform 0.2s; }
@@ -28,11 +29,11 @@
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     /* ===== BUTTONS ===== */
     #cartBtn {
-      background: linear-gradient(135deg, #1e40af, #2563eb);
-      border: none; border-radius: 12px; padding: 0.65rem 1.4rem;
-      font-size: 0.875rem; font-weight: 700; color: #fff;
-      display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(29,78,216,0.4); transition: all 0.22s;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light, var(--primary)));
+        border: none; border-radius: 12px; padding: 0.65rem 1.4rem;
+        font-size: 0.875rem; font-weight: 700; color: #fff;
+        display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.22s;
     }
     #cartBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(29,78,216,0.5); }
     #cartBtn:active { transform: translateY(0); }
@@ -95,7 +96,7 @@
     }
     #cancelCheckoutHeader:hover { background: #fee2e2; color: #ef4444; }
     /* Checkout */
-    .checkout-modal { background: rgba(255,255,255,0.99); backdrop-filter: blur(20px); }
+    .checkout-modal { background: var(--glass-bg); backdrop-filter: blur(20px); }
     .input-field { width: 100%; padding: 0.8rem 1rem; font-size: 0.95rem; border-radius: var(--radius); border: 1.5px solid var(--border); background: #fafafa; color: var(--text); outline: none; transition: all 0.2s; }
     .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,78,216,0.1); background: #fff; }
     .delivery-option { border-radius: var(--radius); border: 1.5px solid var(--border); transition: all 0.2s; cursor: pointer; }
@@ -126,8 +127,7 @@
   font-weight: 600;
   transition: color 0.2s ease;
 }
-.lekidi-nav-list a:hover {
-  color: #1d4ed8;
+.lekidi-nav-list a:hover { color: var(--primary);
 }
 /* Lekidi Button */
 .lekidi-btn {
@@ -191,13 +191,94 @@
   font-size: 14px;
 }
 </style>
+
+    <style>
+      /* --- PREMIUM E-COMMERCE UPGRADES --- */
+      /* Inputs */
+      input, select, textarea {
+          border-radius: 1rem !important;
+          background-color: var(--bg) !important;
+          color: var(--text) !important;
+        border: 2px solid transparent !important;
+        transition: all 0.3s ease !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02) !important;
+      }
+      input:focus, select:focus, textarea:focus {
+          background-color: var(--surface) !important;
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px var(--primary) !important;
+        outline: none !important;
+      }
+      
+      /* Primary Buttons (Buy Now, Add to Cart) */
+      .bg-\[\#E52F20\], .bg-primary, button[type="submit"], .checkout-btn, .btn-primary {
+        background: linear-gradient(135deg, var(--primary), #fb7185) !important;
+        border-radius: 1rem !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.2) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: none !important;
+        color: white !important;
+      }
+      .bg-\[\#E52F20\]:hover, .bg-primary:hover, button[type="submit"]:hover, .checkout-btn:hover, .btn-primary:hover {
+        transform: translateY(-2px) scale(1.01) !important;
+        box-shadow: 0 8px 25px rgba(225, 29, 72, 0.35) !important;
+        filter: brightness(1.05);
+      }
+      .bg-\[\#E52F20\]:active, .bg-primary:active, button[type="submit"]:active, .checkout-btn:active, .btn-primary:active {
+        transform: translateY(1px) scale(0.98) !important;
+      }
+
+      /* Secondary Buttons */
+      .bg-slate-900 {
+        border-radius: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15) !important;
+      }
+      .bg-slate-900:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25) !important;
+      }
+
+      /* Product Cards */
+      .bg-[var(--surface)].rounded-2xl.border, .group.bg-[var(--surface)] {
+        border: none !important;
+        border-radius: 1.5rem !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02) !important;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        overflow: hidden !important;
+      }
+      .bg-[var(--surface)].rounded-2xl.border:hover, .group.bg-[var(--surface)]:hover {
+        transform: translateY(-5px) !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.04) !important;
+      }
+      
+      /* Product Image Hover Zoom */
+      .group:hover img {
+        transform: scale(1.05) !important;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+      }
+
+      /* Navbar enhancement */
+      .lekidi-header {
+        border-bottom: none !important;
+        box-shadow: 0 1px 15px rgba(0,0,0,0.04) !important;
+      }
+      
+      /* Price Tags */
+      .text-\[\#E52F20\] {
+        color: var(--primary) !important;
+      }
+    </style>
+
 </head>
-<body class="pb-20 md:pb-0">
+<body class="pb-20 md:pb-0 text-[var(--text)] bg-[var(--bg)] transition-colors duration-300">
 
   <!-- الترويسة -->
   
   <!-- شريط التواصل العلوي -->
-  <div id="promoTopBar" class="w-full bg-[#E52F20] text-white text-center py-2.5 font-bold text-sm md:text-base tracking-wide z-50 relative">
+  <div id="promoTopBar" class="w-full bg-primary text-white text-center py-2.5 font-bold text-sm md:text-base tracking-wide z-50 relative">
      للتحقق من مصداقيتنا يمكن تفقد الطرد قبل الدفع
   </div>
 
@@ -207,36 +288,36 @@
   <header class="lekidi-header hidden md:flex px-8 justify-between shadow-sm sticky top-0 z-50 items-stretch">
     <!-- Right side (Logo) -->
     <a href="/" class="flex items-center shrink-0 ml-8">
-       <span class="text-4xl font-black text-[#E52F20] tracking-tighter" style="font-family: Impact, sans-serif;">Kalkoul Store</span>
+       <span class="text-4xl font-black text-primary tracking-tighter" style="font-family: Impact, sans-serif;">Kalkoul Store</span>
     </a>
 
     <!-- Middle (Navigation) -->
-    <div class="flex-1 flex justify-center h-full">
-      <ul class="flex h-full m-0 p-0 list-none gap-2">
+    <div class="flex-1 flex justify-center h-full overflow-hidden">
+      <ul class="flex h-full m-0 p-0 list-none gap-2 sm:gap-4 overflow-x-auto scrollbar-hide">
         <li class="h-full">
-           <a href="/" class="flex items-center h-full px-5 text-black font-bold transition-colors border-t-[4px] border-transparent hover:border-[#E52F20] hover:bg-slate-50">الصفحة الرئيسية</a>
+           <a href="/" class="flex items-center h-full px-5 text-[var(--text)] font-bold transition-colors border-t-[4px] border-transparent hover:border-primary hover:bg-[var(--bg)]">الصفحة الرئيسية</a>
         </li>
         <li class="h-full">
-           <a href="/contact-us.html" class="flex items-center h-full px-5 text-black font-bold transition-colors border-t-[4px] border-transparent hover:border-[#E52F20] hover:bg-slate-50">اتصل بنا</a>
+           <a href="/contact-us.html" class="flex items-center h-full px-5 text-[var(--text)] font-bold transition-colors border-t-[4px] border-transparent hover:border-primary hover:bg-[var(--bg)]">اتصل بنا</a>
         </li>
         <li class="h-full">
-           <a href="/collections.html" class="flex items-center h-full px-5 text-black font-bold transition-colors border-t-[4px] border-transparent hover:border-[#E52F20] hover:bg-slate-50">التصنيفات</a>
+           <a href="/collections.html" class="flex items-center h-full px-5 text-[var(--text)] font-bold transition-colors border-t-[4px] border-transparent hover:border-primary hover:bg-[var(--bg)]">التصنيفات</a>
         </li>
         <li class="h-full">
-           <a href="/return-policy.html" class="flex items-center h-full px-5 text-black font-bold transition-colors border-t-[4px] border-transparent hover:border-[#E52F20] hover:bg-slate-50">سياسة الاستبدال و الاسترجاع</a>
+           <a href="/return-policy.html" class="flex items-center h-full px-5 text-[var(--text)] font-bold transition-colors border-t-[4px] border-transparent hover:border-primary hover:bg-[var(--bg)]">سياسة الاستبدال و الاسترجاع</a>
         </li>
       </ul>
     </div>
 
     <!-- Left side (Search + Cart) -->
     <div class="flex items-center gap-6 shrink-0">
-        <button onclick="document.getElementById('searchInput').focus()" class="text-black hover:text-[#E52F20] transition-colors">
+        <button onclick="document.getElementById('searchInput').focus()" class="text-[var(--text)] hover:text-primary transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </button>
         
-        <button id="cartBtnDesktop" onclick="window.openCart()" class="text-black hover:text-[#E52F20] transition-colors flex items-center gap-3">
+        <button id="cartBtnDesktop" onclick="window.openCart()" class="text-[var(--text)] hover:text-primary transition-colors flex items-center gap-3">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            <div class="bg-slate-100 px-3 py-1 rounded text-sm font-bold text-slate-800 border border-slate-200">
+            <div class="bg-[var(--surface)] px-3 py-1 rounded text-sm font-bold text-[var(--text)] border border-[var(--border)]">
                <span id="cartCountDesktopHeader">0</span> د.ج
             </div>
         </button>
@@ -245,8 +326,8 @@
 
 <main class="max-w-6xl mx-auto px-4 py-16" style="font-family: Almarai, sans-serif;">
   <div class="text-center mb-12">
-    <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-2">جميع التشكيلات</h1>
-    <p class="text-slate-400 font-bold text-sm md:text-base">ستجد كل ماتبحث عنه</p>
+    <h1 class="text-3xl md:text-4xl font-black text-[var(--text)] mb-2">جميع التشكيلات</h1>
+    <p class="text-[var(--muted)] font-bold text-sm md:text-base">ستجد كل ماتبحث عنه</p>
   </div>
   
   <div id="collectionsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -280,7 +361,7 @@
         card.href = '/?cat=' + cat.id;
         
         // Match the exact style: white card, corner waves, central circle image
-        card.className = 'bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 flex flex-col items-center justify-center p-6 relative overflow-hidden group h-80';
+        card.className = 'bg-[var(--surface)] rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-[var(--border)] flex flex-col items-center justify-center p-6 relative overflow-hidden group h-80';
         
         card.innerHTML = `
           <!-- Decorative Corners SVG -->
@@ -294,12 +375,12 @@
           </svg>
           
           <!-- Circle Image -->
-          <div class="w-48 h-48 rounded-full border-[6px] border-white shadow-xl overflow-hidden mb-6 relative z-10 bg-white group-hover:scale-105 transition-transform duration-500">
+          <div class="w-48 h-48 rounded-full border-[6px] border-white shadow-xl overflow-hidden mb-6 relative z-10 bg-[var(--surface)] group-hover:scale-105 transition-transform duration-500">
             <img src="${catImg}" alt="${escapeHtml(cat.name)}" class="w-full h-full object-cover" />
           </div>
           
           <!-- Title -->
-          <h3 class="text-xl font-black text-slate-800 z-10 group-hover:text-[#E52F20] transition-colors mt-2">${escapeHtml(cat.name)}</h3>
+          <h3 class="text-xl font-black text-[var(--text)] z-10 group-hover:text-primary transition-colors mt-2">${escapeHtml(cat.name)}</h3>
         `;
         
         grid.appendChild(card);
@@ -313,66 +394,63 @@
 
 
   <!-- التذييل (Footer) -->
-  <footer class="bg-white border-t border-slate-100 pt-12 pb-24 md:pb-12 mt-16">
+  <footer class="bg-[var(--surface)] border-t border-[var(--border)] pt-12 pb-24 md:pb-12 mt-16">
     <div class="max-w-6xl mx-auto px-4">
       
       <!-- Logo -->
       <div class="flex justify-center mb-10">
         <a href="/" class="flex flex-col items-center">
-           <span class="text-4xl font-black text-[#E52F20] tracking-tighter" style="font-family: Impact, sans-serif;">Kalkoul Store</span>
-           <span class="text-[9px] tracking-[0.2em] text-[#E52F20] border-t border-[#E52F20] mt-1 pt-1">W W W . O V A R O 2 8 . C O M</span>
+           <span class="text-4xl font-black text-primary tracking-tighter" style="font-family: Impact, sans-serif;">Kalkoul Store</span>
+           <span class="text-[9px] tracking-[0.2em] text-primary border-t border-primary mt-1 pt-1">W W W . O V A R O 2 8 . C O M</span>
         </a>
       </div>
       
-      <div class="w-full h-px bg-slate-100 mb-10"></div>
+      <div class="w-full h-px bg-[var(--surface)] mb-10"></div>
       
       <!-- 3 Columns -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" dir="rtl">
         
         <!-- Column 1 -->
         <div class="flex flex-col items-center">
-          <h3 class="text-[#E52F20] font-bold text-lg mb-2">عن المتجر</h3>
-          <div class="w-8 h-0.5 bg-[#E52F20] mb-4"></div>
+          <h3 class="text-primary font-bold text-lg mb-2">عن المتجر</h3>
+          <div class="w-8 h-0.5 bg-primary mb-4"></div>
           <ul class="flex flex-col gap-3">
-            <li><a href="/about-us.html" class="text-[#E52F20]/80 hover:text-[#E52F20] text-sm font-medium transition-colors">عن المتجر</a></li>
-            <li><a href="/payment-methods.html" class="text-[#E52F20]/80 hover:text-[#E52F20] text-sm font-medium transition-colors">طرق الدفع</a></li>
-            <li><a href="/shipping-delivery.html" class="text-[#E52F20]/80 hover:text-[#E52F20] text-sm font-medium transition-colors">الشحن والتسليم</a></li>
+            <li><a href="/about-us.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">عن المتجر</a></li>
+            <li><a href="/payment-methods.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">طرق الدفع</a></li>
+            <li><a href="/shipping-delivery.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">الشحن والتسليم</a></li>
           </ul>
         </div>
         
         <!-- Column 2 -->
         <div class="flex flex-col items-center">
-          <h3 class="text-[#E52F20] font-bold text-lg mb-2">اتصل بنا</h3>
-          <div class="w-8 h-0.5 bg-[#E52F20] mb-4"></div>
+          <h3 class="text-primary font-bold text-lg mb-2">اتصل بنا</h3>
+          <div class="w-8 h-0.5 bg-primary mb-4"></div>
           <ul class="flex flex-col gap-3">
-            <li><a href="/contact-us.html" class="text-[#E52F20]/80 hover:text-[#E52F20] text-sm font-medium transition-colors">اتصل بنا</a></li>
-            <li><a href="#" class="text-[#E52F20]/80 hover:text-[#E52F20] text-sm font-medium transition-colors">الأسئلة المتكررة</a></li>
+            <li><a href="/contact-us.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">اتصل بنا</a></li>
+            <li><a href="#" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">الأسئلة المتكررة</a></li>
           </ul>
         </div>
         
         <!-- Column 3 -->
         <div class="flex flex-col items-center">
-          <h3 class="text-[#E52F20] font-bold text-lg mb-2">الشروط والسياسات</h3>
-          <div class="w-8 h-0.5 bg-[#E52F20] mb-4"></div>
+          <h3 class="text-primary font-bold text-lg mb-2">الشروط والسياسات</h3>
+          <div class="w-8 h-0.5 bg-primary mb-4"></div>
           <ul class="flex flex-col gap-3">
-            <li><a href="/terms.html" class="text-[#E52F20]/80 hover:text-[#E52F20] text-sm font-medium transition-colors">شروط الاستخدام</a></li>
-            <li><a href="/return-policy.html" class="text-[#E52F20]/80 hover:text-[#E52F20] text-sm font-medium transition-colors">سياسة الاستبدال والاسترجاع</a></li>
-            <li><a href="/privacy-policy.html" class="text-[#E52F20]/80 hover:text-[#E52F20] text-sm font-medium transition-colors">سياسة الخصوصية</a></li>
+            <li><a href="/terms.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">شروط الاستخدام</a></li>
+            <li><a href="/return-policy.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">سياسة الاستبدال والاسترجاع</a></li>
+            <li><a href="/privacy-policy.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">سياسة الخصوصية</a></li>
           </ul>
         </div>
         
       </div>
       
-      <div class="w-full h-px bg-slate-100 my-10"></div>
+      <div class="w-full h-px bg-[var(--surface)] my-10"></div>
+      
       
       <!-- Social Media -->
-      <div class="flex justify-center gap-4">
-        <a id="social-instagram" href="#" class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 flex items-center justify-center text-white hover:opacity-90 transition-opacity">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-        </a>
-        <a id="social-facebook" href="#" class="w-10 h-10 rounded-full bg-[#3b5998] flex items-center justify-center text-white hover:opacity-90 transition-opacity">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
-        </a>
+      <div id="footerSocialDivider" class="w-full h-px bg-[var(--surface)] my-10" hidden></div>
+      <div id="footerSocialSection" data-social-section hidden>
+        <div id="footerSocialLinks" class="justify-center gap-4 flex-wrap"></div>
       </div>
       
     </div>

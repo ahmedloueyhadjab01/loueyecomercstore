@@ -72,7 +72,7 @@ async function loadCategories() {
 
   for (const cat of CATEGORY_TREE) {
     const btn = document.createElement('button');
-    btn.className = 'cat-btn px-4 py-1.5 rounded-full text-sm font-bold transition-colors whitespace-nowrap bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900';
+    btn.className = 'cat-btn px-4 py-1.5 rounded-full text-sm font-bold transition-colors whitespace-nowrap bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)]';
     btn.dataset.cat = cat.id;
     btn.textContent = cat.name;
     nav.appendChild(btn);
@@ -128,192 +128,165 @@ function escapeHtmlSimple(str) {
   return div.innerHTML;
 }
 
+
+let ALL_PRODUCTS = [];
+let DISPLAY_LIMIT = 8;
+
+function getInitialLimit() {
+  const w = window.innerWidth;
+  if (w >= 1024) return 12; // PC (4 cols x 3 rows)
+  if (w >= 768) return 9; // Tablet (3 cols x 3 rows)
+  return 8; // Mobile (2 cols x 4 rows)
+}
+
+window.handleLoadMore = function() {
+  DISPLAY_LIMIT += getInitialLimit();
+  renderProductGrid();
+};
+
 async function loadProducts() {
   const grid = document.getElementById('productsGrid');
   if (grid) {
-    grid.innerHTML = Array(8).fill(`
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col animate-pulse">
+    grid.innerHTML = Array(getInitialLimit()).fill(`
+      <div class="bg-[var(--surface)] rounded-2xl shadow-sm border border-[var(--border)] overflow-hidden flex flex-col animate-pulse">
         <div class="aspect-[4/5] bg-gray-200"></div>
         <div class="p-4 flex flex-col gap-2">
           <div class="h-4 bg-gray-200 rounded w-3/4"></div>
           <div class="h-4 bg-gray-200 rounded w-1/2"></div>
           <div class="mt-auto pt-2">
             <div class="h-6 bg-gray-200 rounded w-1/3 mb-2"></div>
-            <div class="h-10 bg-gray-200 rounded-xl w-full"></div>
           </div>
         </div>
       </div>
     `).join('');
   }
+
   const params = new URLSearchParams();
   if (CURRENT_STORE_ID) params.set('store_id', CURRENT_STORE_ID);
   if (CURRENT_CATEGORY) params.set('category_id', CURRENT_CATEGORY);
   if (SEARCH_QUERY) params.set('q', SEARCH_QUERY);
-    params.set('t', Date.now());
+  params.set('t', Date.now());
 
   const res = await fetch(`/api/products?${params.toString()}`);
-  const products = await res.json();
+  ALL_PRODUCTS = await res.json();
 
-  if (!CURRENT_STORE_ID && products.length && products[0].user_id) {
-    CURRENT_STORE_ID = products[0].user_id;
+  if (!CURRENT_STORE_ID && ALL_PRODUCTS.length && ALL_PRODUCTS[0].user_id) {
+    CURRENT_STORE_ID = ALL_PRODUCTS[0].user_id;
   }
 
+  DISPLAY_LIMIT = getInitialLimit();
+  renderProductGrid();
+}
+
+function renderProductGrid() {
+  const grid = document.getElementById('productsGrid');
   const empty = document.getElementById('emptyState');
+  const loadMoreBtn = document.getElementById('loadMoreContainer');
+  
+  if (!grid) return;
   grid.innerHTML = '';
 
-  if (!products.length) {
+  if (!ALL_PRODUCTS.length) {
     if (SEARCH_QUERY) {
-      empty.innerHTML = `لم يتم العثور على منتجات مطابقة لـ "<strong>${escapeHtmlSimple(SEARCH_QUERY)}</strong>"<br><span class="text-xs font-normal text-ink/60 mt-1.5 block">تأكد من كتابة الكلمات بشكل صحيح أو ابحث باسم الصنف أو الوصف</span>`;
+      empty.innerHTML = `عذراً، لم نجد أي منتج يطابق "<strong>${escapeHtmlSimple(SEARCH_QUERY)}</strong>"<br><span class="text-xs font-normal text-[var(--muted)] mt-1.5 block">تأكد من كتابة الكلمة بشكل صحيح أو جرب كلمات أخرى</span>`;
     } else {
-      empty.innerHTML = 'لا توجد منتجات حاليًا في هذا التصنيف.';
+      empty.innerHTML = 'لا توجد منتجات متاحة حالياً.';
     }
     empty.classList.remove('hidden');
+    if (loadMoreBtn) loadMoreBtn.style.display = 'none';
     return;
   }
   empty.classList.add('hidden');
 
-  for (const p of products) {
+  const visibleProducts = ALL_PRODUCTS.slice(0, DISPLAY_LIMIT);
+  
+  if (loadMoreBtn) {
+    loadMoreBtn.style.display = DISPLAY_LIMIT >= ALL_PRODUCTS.length ? 'none' : 'block';
+  }
+
+  for (const p of visibleProducts) {
     const outOfStock = p.stock <= 0;
     const card = document.createElement('div');
-      card.onclick = () => location.href = prodUrl;
-    card.className = 'bg-white rounded-2xl shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer';
+    const prodUrl = `/product.html?id=${p.id}&store_id=${CURRENT_STORE_ID || p.user_id}`;
+    card.onclick = () => location.href = prodUrl;
+    card.className = 'bg-[var(--surface)] rounded-3xl shadow-sm hover:shadow-xl border border-[var(--border)] transition-all duration-400 overflow-hidden flex flex-col group cursor-pointer hover:-translate-y-1';
 
-    // جمع الألوان الفريدة إن وجدت
     let colorDotsHtml = '';
     if (p.has_variants && p.variants && p.variants.length) {
       const distinctColors = [];
-      const seen = new Set();
-      for (const v of p.variants) {
-        if (v.color && !seen.has(v.color)) {
-          seen.add(v.color);
-          distinctColors.push(v);
+      p.variants.forEach((v) => {
+        if (v.color_value && !distinctColors.includes(v.color_value)) {
+          distinctColors.push(v.color_value);
         }
-      }
-      if (distinctColors.length > 1) {
-        colorDotsHtml = `
-          <div class="flex items-center gap-1 mt-1">
-            ${distinctColors.slice(0, 5).map(c => `
-              <span class="w-3.5 h-3.5 rounded-full border-2 border-ink shadow-xs inline-block" title="${escapeHtml(c.color)}" style="background-color: ${escapeHtml(c.color_code || '#ddd')}"></span>
-            `).join('')}
-            ${distinctColors.length > 5 ? `<span class="text-[10px] text-ink font-black">+${distinctColors.length - 5}</span>` : ''}
-          </div>
-        `;
+      });
+      if (distinctColors.length > 0) {
+        colorDotsHtml = `<div class="flex flex-wrap gap-1 mb-2">
+          ${distinctColors.slice(0, 4).map(c => `<span class="w-3 h-3 rounded-full border border-gray-200" style="background-color: ${escapeHtml(c)};"></span>`).join('')}
+          ${distinctColors.length > 4 ? `<span class="text-[10px] text-gray-500 font-bold">+${distinctColors.length - 4}</span>` : ''}
+        </div>`;
       }
     }
 
-    const storeParam = CURRENT_STORE_ID ? `&store_id=${CURRENT_STORE_ID}` : '';
-    const prodUrl = `/product.html?slug=${encodeURIComponent(p.slug)}${storeParam}`;
-
-    const isWholesale = p.pack_quantity && Number(p.pack_quantity) > 1;
-    const packBadge = isWholesale
-      ? `<span class="text-[11px] bg-forest/10 text-forest-dark font-black px-2 py-0.5 rounded-md">عبوة (${p.pack_quantity} قطعة)</span>`
-      : `<span class="text-[11px] bg-sand-deep text-ink/70 font-black px-2 py-0.5 rounded-md">قطعة واحدة</span>`;
-    const perPieceText = isWholesale
-      ? `<span class="text-[10px] text-ink/60 font-bold">سعر القطعة: ${money(Math.round(p.price / p.pack_quantity))}</span>`
-      : '';
-    const addBtnLabel = outOfStock
-      ? 'غير متوفر'
-      : (p.has_variants ? 'اختر الخيارات' : (isWholesale ? 'أضف للسلة' : 'أضف للسلة'));
-
-    
-      const mainImg = p.image || '/img/placeholder.svg';
-      card.onclick = () => location.href = prodUrl;
-      card.innerHTML = `
-        <div class="relative aspect-[4/5] bg-gray-100 overflow-hidden">
-          <img src="${escapeHtml(mainImg)}" class="product-img opacity-0 w-full h-full object-cover transition-all duration-500 ${outOfStock ? 'grayscale opacity-60' : 'group-hover:scale-105'}" />
-          ${outOfStock ? '<span class="absolute top-2 right-2 bg-slate-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">نفد</span>' : ''}
-          ${p.compare_price > p.price ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">-${Math.round((1 - p.price/p.compare_price)*100)}%</span>` : ''}
-        </div>
-        <div class="p-3 flex flex-col gap-1.5 flex-1">
-          <h3 class="font-bold text-sm text-slate-800 line-clamp-2 leading-snug">${escapeHtml(p.name)}</h3>
-          ${colorDotsHtml ? `<div class="flex items-center gap-1">${colorDotsHtml}</div>` : ''}
-          <div class="mt-auto pt-2 flex items-center justify-between gap-2">
-            <div class="flex flex-col">
-              <span class="text-base font-bold text-slate-900">${money(p.price)}</span>
-              ${p.compare_price > p.price ? `<span class="text-[10px] text-slate-400 line-through">${money(p.compare_price)}</span>` : ''}
-            </div>
-            <button class="${outOfStock ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-red-700 text-white hover:bg-blue-800 shadow-md hover:shadow-lg'} add-to-cart w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200 shrink-0 hover:-translate-y-0.5">
-              ${outOfStock 
-                ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>'
-                : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'
-              }
-            </button>
+    card.innerHTML = `
+      <div class="aspect-[4/5] relative overflow-hidden bg-[var(--bg)]">
+        <img src="${escapeHtml(p.image || '/img/placeholder.svg')}" loading="lazy" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover product-img opacity-0 transition-opacity duration-300 group-hover:scale-105" />
+        ${outOfStock ? '<div class="absolute inset-0 bg-black/40 flex items-center justify-center"><span class="bg-black/80 text-white px-3 py-1.5 rounded-lg text-xs font-black backdrop-blur-sm">نفذت الكمية</span></div>' : ''}
+        ${!outOfStock && p.compare_price > p.price ? `<div class="absolute top-2 right-2 bg-red-600 text-white text-[10px] sm:text-xs font-black px-2 py-1 rounded-lg shadow-sm">تخفيض</div>` : ''}
+      </div>
+      <div class="p-3 sm:p-4 flex flex-col flex-1">
+        ${colorDotsHtml}
+        <h3 class="text-xs sm:text-sm font-black text-[var(--text)] line-clamp-2 leading-snug mb-2">${escapeHtml(p.name)}</h3>
+        <div class="mt-auto flex items-center justify-between gap-2">
+          <div class="flex flex-col">
+            <span class="text-primary font-black text-sm sm:text-base">${money(p.price)}</span>
+            ${p.compare_price > p.price ? `<span class="text-[10px] sm:text-xs text-[var(--muted)] line-through">${money(p.compare_price)}</span>` : ''}
           </div>
+          <button class="${outOfStock ? 'bg-slate-100 text-[var(--muted)] cursor-not-allowed' : 'bg-gradient-to-tr from-primary to-primary-light text-white shadow-md hover:shadow-lg hover:-translate-y-0.5'} add-to-cart w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0">
+            ${outOfStock 
+              ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>'
+              : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>'
+            }
+          </button>
         </div>
-      `;
+      </div>
+    `;
 
-      // Attach onload safely for CSP
-      const imgEl = card.querySelector('.product-img');
-      if (imgEl) {
-        if (imgEl.complete) {
-          imgEl.classList.remove('opacity-0');
-        } else {
-          imgEl.addEventListener('load', () => imgEl.classList.remove('opacity-0'));
-          imgEl.addEventListener('error', () => imgEl.classList.remove('opacity-0'));
-        }
+    const imgEl = card.querySelector('.product-img');
+    if (imgEl) {
+      if (imgEl.complete) {
+        imgEl.classList.remove('opacity-0');
+      } else {
+        imgEl.addEventListener('load', () => imgEl.classList.remove('opacity-0'));
+        imgEl.addEventListener('error', () => imgEl.classList.remove('opacity-0'));
       }
+    }
 
     if (!outOfStock) {
       const btn = card.querySelector('.add-to-cart');
       if (p.has_variants) {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          window.location.href = prodUrl;
-        });
-      } else {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openQuickAddModal(p);
+          });
+        } else {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const inCart = Cart.get().find((i) => i.id === p.id && !i.variant_id);
           const currentQty = inCart ? inCart.qty : 0;
           if (currentQty + 1 > p.stock) {
-            showToast(`الكمية المتوفرة من هذا المنتج ${p.stock} فقط ⚠️`);
+            showToast(`عذراً، المتوفر فقط ${p.stock} قطعة`);
             return;
           }
           Cart.add(p, 1);
-          showToast('تمت إضافة المنتج إلى السلة ✅');
+          showToast('تمت إضافة المنتج إلى السلة.');
           openCart();
         });
       }
     }
-    
-    let targetContainer = grid;
 
-    if (!CURRENT_CATEGORY && !SEARCH_QUERY) {
-      let catId = p.category_id || 'other';
-      let catName = p.category_name || 'أخرى';
-      let catSection = document.getElementById('cat-section-' + catId);
-      
-      if (!catSection) {
-        catSection = document.createElement('div');
-        catSection.id = 'cat-section-' + catId;
-        catSection.className = 'col-span-full mb-4 sm:mb-8 bg-white/50 rounded-3xl p-3 sm:p-5 border border-slate-200/50'; 
-        
-        catSection.innerHTML = `
-          <div class="flex justify-between items-center mb-4 px-1">
-            <h2 class="text-lg sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-              <span class="w-1.5 h-6 sm:h-8 bg-red-700 rounded-full inline-block"></span> 
-              ${escapeHtml(catName)}
-            </h2>
-            <button onclick="CURRENT_CATEGORY='${p.category_id || ''}'; loadProducts(); window.scrollTo(0,0);" class="text-blue-600 text-xs sm:text-sm font-bold hover:bg-blue-50 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
-              عرض الكل 
-              <svg class="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            </button>
-          </div>
-          <div class="flex overflow-x-auto gap-3 sm:gap-5 snap-x snap-mandatory no-scrollbar pb-2" id="cat-slider-${catId}">
-          </div>
-        `;
-        grid.appendChild(catSection);
-      }
-      
-      targetContainer = catSection.querySelector('#cat-slider-' + catId);
-      card.className = card.className + ' min-w-[160px] max-w-[160px] sm:min-w-[240px] sm:max-w-[240px] shrink-0 snap-start';
-    }
-
-    targetContainer.appendChild(card);
-
+    grid.appendChild(card);
   }
 }
-
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
@@ -342,28 +315,28 @@ function renderCartDrawer() {
   container.innerHTML = '';
 
   if (!items.length) {
-    container.innerHTML = '<p class="text-center text-ink font-black mt-10 text-base">السلة فارغة</p>';
+    container.innerHTML = '<p class="text-center text-[var(--text)] font-black mt-10 text-base">السلة فارغة</p>';
     document.getElementById('cartTotal').textContent = money(0);
     return;
   }
 
   for (const item of items) {
     const row = document.createElement('div');
-    row.className = 'flex items-center gap-3 border-b-2 border-ink/20 pb-3';
+    row.className = 'flex items-center gap-3 border-b-2 border-[var(--border)] pb-3';
     const totalPieces = (item.pack_quantity || 1) * item.qty;
     row.innerHTML = `
-      <img src="${escapeHtml(item.image || '/img/placeholder.svg')}" class="w-14 h-14 object-cover rounded-lg bg-sand-deep border-2 border-ink shadow-2xs" />
+      <img src="${escapeHtml(item.image || '/img/placeholder.svg')}" class="w-14 h-14 object-cover rounded-lg bg-[var(--surface)] border-2 border-[var(--border)] shadow-2xs" />
       <div class="flex-1">
-        <p class="text-sm font-black text-ink line-clamp-1">${escapeHtml(item.name)}${item.variant_label ? ` <span class="text-xs text-forest-dark font-black">(${escapeHtml(item.variant_label)})</span>` : ''}</p>
-        <p class="text-xs text-ink font-bold">${money(item.price)} <span class="text-[10px] text-ink/60 font-normal">/ عبوة</span></p>
-        <p class="text-[11px] text-forest-dark font-black">المجموع: ${totalPieces} قطعة (${item.qty} عبوة)</p>
+        <p class="text-sm font-black text-[var(--text)] line-clamp-1">${escapeHtml(item.name)}${item.variant_label ? ` <span class="text-xs text-green-600 font-black">(${escapeHtml(item.variant_label)})</span>` : ''}</p>
+        <p class="text-xs text-[var(--text)] font-bold">${money(item.price)} <span class="text-[10px] text-[var(--muted)] font-normal">/ عبوة</span></p>
+        <p class="text-[11px] text-green-600 font-black">المجموع: ${totalPieces} قطعة (${item.qty} عبوة)</p>
         <div class="flex items-center gap-2 mt-1">
-          <button class="qty-btn dec w-8 h-8 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-base flex items-center justify-center hover:border-blue-400 hover:text-red-700 transition-all">-</button>
-          <span class="text-sm font-black text-ink">${item.qty} عبوة</span>
-          <button class="qty-btn inc w-8 h-8 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-base flex items-center justify-center hover:border-blue-400 hover:text-red-700 transition-all">+</button>
+          <button class="qty-btn dec w-8 h-8 rounded-xl border-2 border-[var(--border)] bg-[var(--surface)] text-[var(--text)] font-bold text-base flex items-center justify-center hover:border-blue-400 hover:text-red-700 transition-all">-</button>
+          <span class="text-sm font-black text-[var(--text)]">${item.qty} عبوة</span>
+          <button class="qty-btn inc w-8 h-8 rounded-xl border-2 border-[var(--border)] bg-[var(--surface)] text-[var(--text)] font-bold text-base flex items-center justify-center hover:border-blue-400 hover:text-red-700 transition-all">+</button>
         </div>
       </div>
-      <button class="remove-btn w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all text-base">حذف</button>
+      <button class="remove-btn w-7 h-7 flex items-center justify-center rounded-lg text-[var(--muted)] hover:bg-red-50 hover:text-red-500 transition-all text-base">حذف</button>
     `;
     row.querySelector('.inc').addEventListener('click', () => { Cart.updateQty(item.id, item.variant_id, item.qty + 1); renderCartDrawer(); });
     row.querySelector('.dec').addEventListener('click', () => { Cart.updateQty(item.id, item.variant_id, item.qty - 1); renderCartDrawer(); });
@@ -462,9 +435,9 @@ async function updateDeliveryPrices() {
       const data = isDesk ? deskData : homeData;
       
       if (data.is_unavailable) {
-        priceEl.innerHTML = '<span class="text-rose-700 font-black">غير متاح</span>';
+        priceEl.innerHTML = '<span class="text-primary-dark font-black">غير متاح</span>';
       } else if (data.is_free) {
-        priceEl.innerHTML = '<span class="text-forest font-black">مجاني 🎉</span>';
+        priceEl.innerHTML = '<span class="text-green-500 font-black">مجاني 🎉</span>';
       } else {
         priceEl.textContent = money(data.price);
       }
@@ -674,3 +647,202 @@ document.getElementById('searchFormMobile')?.addEventListener('submit', (e) => {
   }
 })();
 
+
+
+// --- Quick Add Modal Logic ---
+window.openQuickAddModal = async function(product) {
+  // Create modal container if not exists
+  let modal = document.getElementById('quickAddModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'quickAddModal';
+    modal.className = 'fixed inset-0 z-[100] flex items-center justify-center hidden p-4';
+    modal.innerHTML = `
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeQuickAddModal()"></div>
+      <div class="relative bg-[var(--surface)] w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="quickAddContent">
+        <button onclick="closeQuickAddModal()" class="absolute top-4 right-4 text-[var(--muted)] hover:text-red-500 bg-[var(--bg)] rounded-full p-2">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="flex gap-4 mb-6">
+          <img id="qaImg" src="" class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-2xl border border-[var(--border)] shadow-sm shrink-0">
+          <div>
+            <h3 id="qaTitle" class="font-black text-lg text-[var(--text)] mb-2"></h3>
+            <p id="qaPrice" class="text-primary font-bold text-xl"></p>
+          </div>
+        </div>
+        
+        <div id="qaOptionsContainer" class="space-y-4"></div>
+        
+        <div class="mt-8">
+          <button id="qaSubmit" class="w-full bg-primary text-white font-bold py-4 rounded-2xl hover:bg-primary-hover shadow-lg hover:shadow-primary/30 transition-all text-lg">
+            إضافة إلى السلة
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // Populate data
+  document.getElementById('qaImg').src = product.image_url || '/placeholder.png';
+  document.getElementById('qaTitle').textContent = product.name;
+  document.getElementById('qaPrice').textContent = product.discount_price ? product.discount_price + ' د.ج' : product.price + ' د.ج';
+
+  const optsContainer = document.getElementById('qaOptionsContainer');
+  optsContainer.innerHTML = ''; // clear
+
+  // Group variants by size
+  let sizes = [];
+  let colorsBySize = {}; // { size1: [variant, variant], size2: [] }
+  
+  if (product.variants && product.variants.length > 0) {
+    product.variants.forEach(v => {
+      const s = v.size_value || 'متوفر';
+      if (!sizes.includes(s)) {
+        sizes.push(s);
+        colorsBySize[s] = [];
+      }
+      colorsBySize[s].push(v);
+    });
+
+    let selectedSize = sizes[0];
+    let selectedVariant = null;
+
+    // Render sizes
+    if (sizes.length > 0 && sizes[0] !== 'متوفر') {
+      const sizeDiv = document.createElement('div');
+      sizeDiv.innerHTML = '<h4 class="font-bold text-[var(--text)] mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>المقاس</h4><div class="flex flex-wrap gap-3" id="qaSizes"></div>';
+      optsContainer.appendChild(sizeDiv);
+
+      const qaSizeGrid = document.getElementById('qaSizes');
+      sizes.forEach(sz => {
+        const btn = document.createElement('button');
+        btn.className = `px-5 py-2.5 rounded-xl font-bold border-2 transition-all ${sz === selectedSize ? 'border-primary bg-primary/10 text-primary scale-105' : 'border-[var(--border)] text-[var(--muted)] hover:border-primary/50'}`;
+        btn.textContent = sz;
+        btn.onclick = () => {
+          selectedSize = sz;
+          Array.from(qaSizeGrid.children).forEach(c => {
+            c.className = 'px-5 py-2.5 rounded-xl font-bold border-2 transition-all border-[var(--border)] text-[var(--muted)] hover:border-primary/50';
+          });
+          btn.className = 'px-5 py-2.5 rounded-xl font-bold border-2 transition-all border-primary bg-primary/10 text-primary scale-105';
+          renderColorsForSize(selectedSize);
+        };
+        qaSizeGrid.appendChild(btn);
+      });
+    }
+
+    // Colors container
+    const colorDiv = document.createElement('div');
+    colorDiv.className = 'mt-5';
+    colorDiv.innerHTML = '<h4 class="font-bold text-[var(--text)] mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>اللون</h4><div class="flex flex-wrap gap-3" id="qaColors"></div>';
+    optsContainer.appendChild(colorDiv);
+
+    const renderColorsForSize = (sz) => {
+      const qaColorsGrid = document.getElementById('qaColors');
+      qaColorsGrid.innerHTML = '';
+      const vars = colorsBySize[sz] || [];
+      if (vars.length === 0) {
+        qaColorsGrid.innerHTML = '<span class="text-sm text-red-500 font-bold">غير متوفر بهذا المقاس</span>';
+        selectedVariant = null;
+        return;
+      }
+      
+      // Auto select first color
+      selectedVariant = vars.find(v => v.stock > 0) || vars[0];
+
+      vars.forEach(v => {
+        const isSelected = selectedVariant && selectedVariant.id === v.id;
+        const outOfStock = v.stock <= 0;
+        
+        const btn = document.createElement('button');
+        btn.disabled = outOfStock;
+        btn.className = `relative flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${isSelected ? 'border-primary bg-primary/5 scale-105 shadow-md' : 'border-[var(--border)] hover:border-primary/50'} ${outOfStock ? 'opacity-50 cursor-not-allowed grayscale' : ''}`;
+        
+        let visualColor = v.color_value || '#ccc';
+        let innerHTML = `<div class="w-10 h-10 rounded-full border border-gray-300 shadow-inner" style="background-color: ${escapeHtml(visualColor)}"></div>`;
+        if (v.color_name) {
+          innerHTML += `<span class="text-xs font-bold text-[var(--text)]">${escapeHtml(v.color_name)}</span>`;
+        }
+        
+        btn.innerHTML = innerHTML;
+        
+        btn.onclick = () => {
+          selectedVariant = v;
+          renderColorsForSize(sz); // re-render to update selected state
+        };
+        qaColorsGrid.appendChild(btn);
+      });
+      
+      // Update price based on variant
+      if (selectedVariant) {
+        document.getElementById('qaPrice').textContent = selectedVariant.price ? selectedVariant.price + ' د.ج' : (product.discount_price || product.price) + ' د.ج';
+      }
+    };
+
+    renderColorsForSize(selectedSize);
+
+    // Submit Action
+    document.getElementById('qaSubmit').onclick = () => {
+      if (!selectedVariant) return showToast('الرجاء اختيار مقاس ولون متاح', 'error');
+      
+      const inCart = Cart.get().find(i => i.id === product.id && i.variant_id === selectedVariant.id);
+      const currentQty = inCart ? inCart.qty : 0;
+      if (currentQty + 1 > selectedVariant.stock) {
+        showToast('الكمية المطلوبة غير متوفرة في المخزون!', 'error');
+        return;
+      }
+
+      Cart.add(product, 1, selectedVariant);
+      
+      const animNode = document.createElement('div');
+      animNode.className = 'fixed bg-primary text-white font-bold px-6 py-3 rounded-full shadow-2xl z-[200] transition-all duration-700 pointer-events-none flex items-center gap-2';
+      animNode.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> أضيف بنجاح';
+      
+      const btnRect = document.getElementById('qaSubmit').getBoundingClientRect();
+      animNode.style.top = btnRect.top + 'px';
+      animNode.style.left = (btnRect.left + btnRect.width / 2 - 70) + 'px';
+      document.body.appendChild(animNode);
+      
+      closeQuickAddModal();
+      
+      setTimeout(() => {
+        const cartIcon = document.getElementById('cartBtnDesktop') || document.getElementById('cartBtn');
+        if (cartIcon) {
+          const cartRect = cartIcon.getBoundingClientRect();
+          animNode.style.top = cartRect.top + 'px';
+          animNode.style.left = cartRect.left + 'px';
+          animNode.style.transform = 'scale(0.5)';
+          animNode.style.opacity = '0';
+        } else {
+          animNode.style.transform = 'translateY(-50px)';
+          animNode.style.opacity = '0';
+        }
+      }, 50);
+      
+      setTimeout(() => animNode.remove(), 750);
+    };
+
+  } else {
+    // Should not happen since we only call this for variants, but fallback:
+    optsContainer.innerHTML = '<p class="text-[var(--text)] font-bold">لا توجد خيارات لهذا المنتج</p>';
+  }
+
+  // Show modal
+  modal.classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('quickAddContent').classList.remove('scale-95', 'opacity-0');
+    document.getElementById('quickAddContent').classList.add('scale-100', 'opacity-100');
+  }, 10);
+};
+
+window.closeQuickAddModal = function() {
+  const modal = document.getElementById('quickAddModal');
+  const content = document.getElementById('quickAddContent');
+  if (modal && content) {
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 200);
+  }
+};

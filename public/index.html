@@ -3,94 +3,578 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Ovaro_28 | الرئيسية</title>
+  <title>Kalkoul Store | الرئيسية</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/css/storefront.css?v=20260928" rel="stylesheet">
+  <script src="/js/track.js?v=1"></script>
+  <script src="/js/theme.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'IBM Plex Sans Arabic', sans-serif; background-color: #f8fafc; color: #0f172a; }
-    .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid #e2e8f0; }
-    .bottom-nav { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); border-top: 1px solid #e2e8f0; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; color: #64748b; transition: all 0.2s; position: relative; }
-    .nav-item:hover, .nav-item.active { color: #2563eb; }
+    <style>
+    :root { --primary: #e11d48; --bg: #ffffff; --surface: #ffffff; --border: #e2e8f0; --text: #0f172a; --muted: #64748b; --radius: 0.875rem;  --glass-bg: rgba(255,255,255,0.97); }
+    * { box-sizing: border-box; }
+    body { font-family: 'IBM Plex Sans Arabic', sans-serif; background-color: var(--bg); color: var(--text); }
+    .glass-nav { background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); box-shadow: 0 1px 8px rgba(0,0,0,0.05); }
+    .bottom-nav { background: var(--glass-bg); backdrop-filter: blur(16px); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -2px 12px rgba(0,0,0,0.05); }
+    .nav-item { display: flex; flex-direction: column; /*  */ justify-content: center; width: 100%; height: 100%; color: #94a3b8; transition: all 0.2s; position: relative; }
+    .nav-item:hover, .nav-item.active { color: var(--primary); }
     .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; transition: transform 0.2s; }
     .nav-item:hover .nav-icon { transform: translateY(-2px); }
     .nav-label { font-size: 10px; font-weight: 700; opacity: 0; transform: translateY(5px); transition: all 0.2s; position: absolute; bottom: 6px; }
-    .nav-item:hover .nav-label, .nav-item:focus .nav-label, .nav-item:active .nav-label { opacity: 1; transform: translateY(0); }
-    .nav-item:hover .nav-icon, .nav-item:focus .nav-icon, .nav-item:active .nav-icon { transform: translateY(-10px); }
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    .nav-item:hover .nav-label, .nav-item:active .nav-label { opacity: 1; transform: translateY(0); }
+    .nav-item:hover .nav-icon, .nav-item:active .nav-icon { transform: translateY(-10px); }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    
-    .checkout-modal { background: rgba(255,255,255,0.95); backdrop-filter: blur(16px); }
-    .input-field { width: 100%; padding: 0.75rem 1rem; font-size: 1rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; background: #ffffff; color: #0f172a; outline: none; transition: all 0.2s; }
-    .input-field:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    /* ===== BUTTONS ===== */
+    #cartBtn {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light, var(--primary)));
+        border: none; border-radius: 12px; padding: 0.65rem 1.4rem;
+        font-size: 0.875rem; font-weight: 700; color: #fff;
+        display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: all 0.22s;
+    }
+    #cartBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(29,78,216,0.5); }
+    #cartBtn:active { transform: translateY(0); }
+    #searchBtn {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      border: none; border-radius: 8px; padding: 0.45rem 1rem;
+      font-size: 0.75rem; font-weight: 700; color: #fff; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(29,78,216,0.3); transition: all 0.2s;
+    }
+    #searchBtn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(29,78,216,0.45); }
+    .cat-btn {
+      border-radius: 10px; padding: 0.5rem 1.15rem; font-size: 0.8rem; font-weight: 700;
+      transition: all 0.18s; border: 1.5px solid #e2e8f0; color: var(--muted);
+      background: var(--surface); cursor: pointer; white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .cat-btn:hover { background: #f1f5f9; color: #0f172a; }
+    .cat-btn.active-cat {
+      background: linear-gradient(135deg, #1e40af, #2563eb);
+      color: #fff; border-color: transparent;
+      box-shadow: 0 4px 14px rgba(29,78,216,0.4); transform: translateY(-1px);
+    }
+    .subcat-btn {
+      border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 0.78rem; font-weight: 700;
+      transition: all 0.18s; border: 1.5px solid var(--border); color: var(--muted);
+      background: var(--surface); cursor: pointer;
+    }
+    .subcat-btn:hover { border-color: #93c5fd; color: var(--primary); }
+    .subcat-btn.active-cat {
+      background: linear-gradient(135deg, #1e40af, #2563eb);
+      color: #fff; border-color: transparent; box-shadow: 0 3px 10px rgba(29,78,216,0.35);
+    }
+    #checkoutBtn {
+      width: 100%;
+      background: linear-gradient(135deg, #1e40af, #2563eb);
+      color: #fff; font-weight: 800; font-size: 1rem;
+      padding: 1rem; border-radius: 14px; border: none; cursor: pointer;
+      box-shadow: 0 4px 18px rgba(29,78,216,0.45); transition: all 0.22s;
+    }
+    #checkoutBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(229, 47, 32, 0.55); }
+    #checkoutBtn:active { transform: translateY(0); }
+    #checkoutBtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    #confirmOrderBtn {
+      flex: 1;
+      background: linear-gradient(135deg, #15803d, #22c55e);
+      color: #fff; font-weight: 800; font-size: 1rem;
+      padding: 1rem; border-radius: 14px; border: none; cursor: pointer;
+      box-shadow: 0 4px 18px rgba(21,128,61,0.4); transition: all 0.22s;
+    }
+    #confirmOrderBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(21,128,61,0.55); }
+    #confirmOrderBtn:active { transform: translateY(0); }
+    #cancelCheckout {
+      padding: 1rem 1.2rem; background: #f1f5f9; color: #475569; font-weight: 700;
+      border-radius: 14px; border: 1.5px solid #e2e8f0; cursor: pointer; transition: all 0.2s;
+    }
+    #cancelCheckout:hover { background: #e2e8f0; color: #0f172a; }
+    #cancelCheckoutHeader {
+      padding: 0.45rem; background: transparent; border: none; cursor: pointer;
+      border-radius: 50%; color: #94a3b8; transition: all 0.2s; line-height: 0;
+    }
+    #cancelCheckoutHeader:hover { background: #fee2e2; color: #ef4444; }
+    /* Checkout */
+    .checkout-modal { background: var(--glass-bg); backdrop-filter: blur(20px); }
+    .input-field { width: 100%; padding: 0.8rem 1rem; font-size: 0.95rem; border-radius: var(--radius); border: 1.5px solid var(--border); background: #fafafa; color: var(--text); outline: none; transition: all 0.2s; }
+    .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,78,216,0.1); background: #fff; }
+    .delivery-option { border-radius: var(--radius); border: 1.5px solid var(--border); transition: all 0.2s; cursor: pointer; }
+    .delivery-option:has(input:checked) { border-color: var(--primary); background: #eff6ff; }
   </style>
-  <script src="/js/track.js"></script>
+
+<style>
+/* Lekidi Navbar styles */
+.lekidi-header {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #f0f0f0;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* or Cairo */
+}
+.lekidi-nav-list {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lekidi-nav-list a {
+  color: #000000;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+.lekidi-nav-list a:hover { color: var(--primary);
+}
+/* Lekidi Button */
+.lekidi-btn {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  background-color: #FFFFFF;
+  color: #E52F20;
+  border: 1px solid #E52F20;
+  font-weight: bold;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+.lekidi-btn:hover {
+  background-color: #E52F20;
+  color: #FFFFFF;
+}
+/* Lekidi Product Card */
+.lekidi-card {
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.lekidi-card:hover {
+  border-color: #E52F20;
+}
+.lekidi-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+.lekidi-card-body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  text-align: center;
+  flex-grow: 1;
+}
+.lekidi-title {
+  color: #000000;
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+}
+.lekidi-title:hover {
+  color: #E52F20;
+}
+.lekidi-price {
+  color: #E52F20;
+  font-size: 16px;
+  font-weight: 900;
+}
+.lekidi-price-currency {
+  font-size: 14px;
+}
+</style>
+
+    <style>
+      /* --- PREMIUM E-COMMERCE UPGRADES --- */
+      /* Inputs */
+      input, select, textarea {
+          border-radius: 1rem !important;
+          background-color: var(--bg) !important;
+          color: var(--text) !important;
+        border: 2px solid transparent !important;
+        transition: all 0.3s ease !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.02) !important;
+      }
+      input:focus, select:focus, textarea:focus {
+          background-color: var(--surface) !important;
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px var(--primary) !important;
+        outline: none !important;
+      }
+      
+      /* Primary Buttons (Buy Now, Add to Cart) */
+      .bg-\[\#E52F20\], .bg-primary, button[type="submit"], .checkout-btn {
+        background: linear-gradient(135deg, var(--primary), #fb7185) !important;
+        border-radius: 1rem !important;
+        font-weight: 900 !important;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.2) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: none !important;
+        color: white !important;
+      }
+      .bg-\[\#E52F20\]:hover, .bg-primary:hover, button[type="submit"]:hover, .checkout-btn:hover {
+        transform: translateY(-2px) scale(1.01) !important;
+        box-shadow: 0 8px 25px rgba(225, 29, 72, 0.35) !important;
+        filter: brightness(1.05);
+      }
+      .bg-\[\#E52F20\]:active, .bg-primary:active, button[type="submit"]:active, .checkout-btn:active {
+        transform: translateY(1px) scale(0.98) !important;
+      }
+
+      /* Secondary Buttons */
+      .bg-slate-900 {
+        border-radius: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15) !important;
+      }
+      .bg-slate-900:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25) !important;
+      }
+
+      /* Product Cards */
+      .bg-[var(--surface)].rounded-2xl.border, .group.bg-[var(--surface)] {
+        border: none !important;
+        border-radius: 1.5rem !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02) !important;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        overflow: hidden !important;
+      }
+      .bg-[var(--surface)].rounded-2xl.border:hover, .group.bg-[var(--surface)]:hover {
+        transform: translateY(-5px) !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08), 0 5px 15px rgba(0,0,0,0.04) !important;
+      }
+      
+      /* Product Image Hover Zoom */
+      .group:hover img {
+        transform: scale(1.05) !important;
+        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+      }
+
+      /* Navbar enhancement */
+      .lekidi-header {
+        border-bottom: none !important;
+        box-shadow: 0 1px 15px rgba(0,0,0,0.04) !important;
+      }
+      
+      /* Price Tags */
+      .text-\[\#E52F20\] {
+        color: var(--primary) !important;
+      }
+    </style>
+    
 </head>
-<body class="pb-20 md:pb-0">
+<body class="pb-20 md:pb-0 storefront-page home-page text-[var(--text)] bg-[var(--bg)] transition-colors duration-300">
 
   <!-- شريط التواصل العلوي -->
-  <div id="socialIconsTopBar" class="flex justify-center gap-4 py-2 bg-slate-900 text-white"></div>
+  <div id="promoTopBar" class="w-full bg-primary text-white text-center py-2.5 font-bold text-sm md:text-base tracking-wide z-50 relative">
+     للتحقق من مصداقيتنا يمكن تفقد الطرد قبل الدفع
+  </div>
 
   <!-- الترويسة -->
-  <header class="sticky top-0 z-40 glass-nav shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-      <a href="/" class="text-3xl font-bold tracking-tight text-slate-900">Ovaro_28</a>
-      <form id="searchFormDesktop" class="hidden md:flex flex-1 max-w-xl relative items-center">
-        <input id="searchInput" type="search" placeholder="ابحث عن منتج..." autocomplete="off" class="w-full pr-4 pl-24 py-2.5 text-sm font-semibold text-slate-900 placeholder:text-slate-400 rounded-full border border-slate-200 bg-slate-50 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-blue-100 outline-none transition-all" />
-        <button id="clearSearchBtn" type="button" class="hidden absolute left-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-        <button id="searchBtn" type="button" class="absolute left-1.5 top-1/2 -translate-y-1/2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-md">بحث</button>
-      </form>
-      <button id="cartBtn" class="relative items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-md hidden md:flex">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-        السلة
-        <span id="cartCount" class="absolute -top-1 -left-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-md">0</span>
-      </button>
+  
+  
+
+  <!-- Lekidi-style Header Desktop -->
+  
+  
+  <div class="sticky top-0 z-50 w-full flex flex-col shadow-sm">
+<header class="lekidi-header hidden md:flex px-8 justify-between shadow-sm items-stretch bg-[var(--surface)] relative z-50">
+    <!-- Right side (Logo) -->
+    <a href="/" class="flex items-center shrink-0 ml-8">
+       <span class="text-4xl font-black text-primary tracking-tighter" style="font-family: Impact, sans-serif;">Kalkoul Store</span>
+    </a>
+
+    <!-- Middle (Navigation) -->
+    <div class="flex-1 flex justify-center h-full overflow-hidden">
+      <ul class="flex h-full m-0 p-0 list-none gap-2 sm:gap-4 overflow-x-auto scrollbar-hide">
+        <li class="h-full">
+           <a href="/" class="relative flex items-center h-full px-5 text-[var(--text)] font-bold hover:bg-[var(--bg)] transition-colors group whitespace-nowrap">
+           الصفحة الرئيسية
+           <span class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-[4px] bg-primary transition-all duration-300 group-hover:w-full"></span>
+        </a>
+        </li>
+        <li class="h-full">
+           <a href="/contact-us.html" class="relative flex items-center h-full px-5 text-[var(--text)] font-bold hover:bg-[var(--bg)] transition-colors group whitespace-nowrap">
+           اتصل بنا
+           <span class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-[4px] bg-primary transition-all duration-300 group-hover:w-full"></span>
+        </a>
+        </li>
+        <li class="h-full">
+           <a href="/collections.html" class="relative flex items-center h-full px-5 text-[var(--text)] font-bold hover:bg-[var(--bg)] transition-colors group whitespace-nowrap">
+           التصنيفات
+           <span class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-[4px] bg-primary transition-all duration-300 group-hover:w-full"></span>
+        </a>
+        </li>
+        <li class="h-full">
+           <a href="/return-policy.html" class="relative flex items-center h-full px-5 text-[var(--text)] font-bold hover:bg-[var(--bg)] transition-colors group whitespace-nowrap">
+           سياسة الاستبدال و الاسترجاع
+           <span class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-[4px] bg-primary transition-all duration-300 group-hover:w-full"></span>
+        </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Left side (Search + Cart) -->
+    <div class="flex items-center gap-6 shrink-0">
+        
+        
+            <button id="desktopSearchBtn" class="text-[var(--text)] hover:text-primary transition-colors">
+              <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </button>
+
+
+
+        
+
+        
+        <button id="cartBtnDesktop" class="text-[var(--text)] hover:text-primary transition-colors flex items-center gap-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            <div class="bg-[var(--surface)] px-3 py-1 rounded text-sm font-bold text-[var(--text)] border border-[var(--border)]">
+               <span id="cartCountDesktopHeader">0</span> منتج
+            </div>
+        </button>
     </div>
   </header>
+<div id="attachedSearchBarContainer" class="hidden w-full bg-primary relative z-40 shadow-sm border-t border-[#f97316]">
+    <div class="max-w-7xl mx-auto px-3 md:px-8 py-2.5 md:py-3 flex items-center justify-center">
+       
+       <form id="attachedSearchForm" class="flex w-full shadow-md rounded overflow-visible relative items-stretch">
+          
+          <!-- Attached Dropdown Button (Right in RTL) -->
+          <div class="relative shrink-0" id="categoryDropdownContainer">
+              <button type="button" id="categoryDropdownBtn" class="bg-[#cc2215] hover:bg-[#b01d12] text-white px-2.5 md:px-6 py-2.5 md:py-3 rounded-r flex items-center justify-between gap-1.5 md:gap-4 w-24 sm:w-36 md:w-64 font-bold text-[11px] sm:text-sm md:text-base border-l border-[#b01d12] transition-colors h-full">
+                 <span id="categoryDropdownText" class="truncate">جميع التشكيلات</span> 
+                 <svg class="w-3.5 h-3.5 md:w-5 md:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+              </button>
+              
+              <!-- Dropdown Menu -->
+              <div id="categoryDropdownMenu" class="absolute top-full right-0 mt-1 w-40 sm:w-56 md:w-full bg-[var(--surface)] shadow-xl border border-[var(--border)] rounded hidden flex-col z-50 overflow-hidden divide-y divide-[var(--border)]">
+                 <a href="#" class="px-4 py-3 text-[var(--text)] hover:bg-slate-600 hover:text-white text-right text-xs sm:text-sm font-bold transition-colors">جاري التحميل...</a>
+              </div>
+          </div>
 
-  <!-- التصنيفات -->
-  <nav class="border-b border-slate-200 bg-white">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex overflow-x-auto gap-2 no-scrollbar" id="categoryNav">
-      <button class="cat-btn px-4 py-1.5 rounded-full text-sm font-bold transition-colors whitespace-nowrap bg-slate-800 text-white shadow-md" data-cat="">الكل</button>
+          <!-- Attached Search Input (Left in RTL) -->
+          <div class="relative flex-1 h-full">
+              <input type="text" id="attachedSearchInput" placeholder="البحث عن منتج" class="w-full h-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 rounded-l text-xs sm:text-sm md:text-base outline-none text-right font-bold text-[var(--text)]">
+              <button type="submit" class="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-primary transition-colors">
+                 <svg class="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </button>
+          </div>
+       </form>
+
     </div>
-  </nav>
+  </div>
+</div>
+
+
+  <!-- Togglable Search Bar (Hidden by default) -->
+  
+
+
+
+  
+    
+  </div>
+
+
+
+  <!-- Slider (Carousel) -->
+  <div class="relative w-full h-48 md:h-[450px] overflow-hidden bg-[var(--surface)]" id="sliderContainer">
+    <div class="flex h-full transition-transform duration-700 ease-in-out w-[300%] max-w-[300%]" id="slider">
+      <div class="w-1/3 h-full shrink-0"><img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200" class="w-full h-full object-cover" /></div>
+      <div class="w-1/3 h-full shrink-0"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200" class="w-full h-full object-cover" /></div>
+      <div class="w-1/3 h-full shrink-0"><img src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=1200" class="w-full h-full object-cover" /></div>
+    </div>
+    <!-- Slider dots -->
+    
+    <!-- Slider Navigation Arrows -->
+    <button id="sliderPrevBtn" class="absolute top-1/2 -translate-y-1/2 right-4 w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/50 text-white rounded-full transition-colors z-20">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+    <button id="sliderNextBtn" class="absolute top-1/2 -translate-y-1/2 left-4 w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/50 text-white rounded-full transition-colors z-20">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+    </button>
+
+    <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2" id="sliderDots">
+      <button class="w-3 h-3 rounded-full bg-[var(--surface)] shadow slider-dot" data-index="0"></button>
+      <button class="w-3 h-3 rounded-full bg-[var(--surface)]/50 hover:bg-[var(--surface)] shadow slider-dot" data-index="1"></button>
+      <button class="w-3 h-3 rounded-full bg-[var(--surface)]/50 hover:bg-[var(--surface)] shadow slider-dot" data-index="2"></button>
+    </div>
+  </div>
+
+  <script>
+    // Custom Slider Logic: 15s initial, then 10s intervals, slow transition
+    let currentSlide = 0;
+    const slidesCount = 3;
+    const slider = document.getElementById('slider');
+    const dots = document.querySelectorAll('#sliderDots button');
+    
+    // Ensure the slider has a long transition duration
+    if(slider) {
+       slider.style.transition = 'transform 1.5s ease-in-out';
+    }
+
+    function updateSlider() {
+      if (slider) {
+        slider.style.transform = `translateX(${currentSlide * 33.333333}%)`;
+        dots.forEach((dot, index) => {
+          if (index === currentSlide) {
+            dot.classList.replace('bg-[var(--surface)]/50', 'bg-[var(--surface)]');
+          } else {
+            dot.classList.replace('bg-[var(--surface)]', 'bg-[var(--surface)]/50');
+          }
+        });
+      }
+    }
+
+    function goToSlide(index) {
+      currentSlide = index;
+      updateSlider();
+      resetInterval();
+    }
+
+    
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + slidesCount) % slidesCount;
+      updateSlider();
+      resetInterval();
+    }
+    
+    function nextSlide(manual = false) {
+      currentSlide = (currentSlide + 1) % slidesCount;
+      updateSlider();
+      if(manual) resetInterval();
+    }
+    
+    // Original nextSlide was:
+    function originalNextSlide_ignore() {
+
+      currentSlide = (currentSlide + 1) % slidesCount;
+      updateSlider();
+    }
+
+    let slideInterval;
+    
+    // First wait 15 seconds, then change slide, and start the 10-second interval
+    let initialTimeout = setTimeout(() => {
+        nextSlide();
+        slideInterval = setInterval(nextSlide, 10000);
+    }, 15000);
+
+    function resetInterval() {
+      clearTimeout(initialTimeout);
+      clearInterval(slideInterval);
+      slideInterval = setInterval(nextSlide, 10000);
+    }
+  </script>
+
+
+  
+  <!-- Carousel -->
+  
+
+
+  <header class="relative z-40 glass-nav shadow-sm md:hidden">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center gap-4">
+      <a href="/" class="text-2xl font-bold tracking-tight text-[var(--text)]">Kalkoul Store</a>
+<div class="flex-1"></div>
+
+    </div>
+</header>
+
+  <!-- التصنيفات بالصور -->
+  <div class="max-w-7xl mx-auto px-4 py-8">
+      <div id="dynamicCategoryCircles" class="grid grid-cols-2 md:grid-cols-4 gap-6 hidden"></div>
+  </div>
 
   <!-- شبكة المنتجات -->
   <main class="max-w-7xl mx-auto px-4 py-8 min-h-[50vh]">
-    <div id="subCategoryNav" class="flex overflow-x-auto gap-2 pb-2 mb-4 scrollbar-hide hidden"></div>
+    <nav id="categoryNav" class="flex overflow-x-auto gap-2 pb-2 mb-4 scrollbar-hide"></nav>
+      <div id="subCategoryNav" class="flex overflow-x-auto gap-2 pb-2 mb-4 scrollbar-hide hidden"></div>
       <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
-    <p id="emptyState" class="hidden text-center text-slate-400 font-bold py-20 text-base">لا توجد منتجات مطابقة.</p>
+    <p id="emptyState" class="hidden text-center text-[var(--muted)] font-bold py-20 text-base">لا توجد منتجات مطابقة.</p>
+
+  
+
   </main>
 
-  <!-- التذييل -->
-  <footer class="border-t border-slate-200 mt-10 py-10 bg-white text-center text-sm">
-    <p class="text-2xl font-bold text-slate-900 mb-3">Ovaro_28</p>
-    <div id="socialIconsFooter" class="flex justify-center gap-3 mb-4"></div>
-    <p class="text-slate-400 font-medium">&copy; <span id="currentYear"></span> جميع الحقوق محفوظة.</p>
-  </footer>
+  
+  
+  <!-- Load More -->
+  <div class="text-center mt-12 mb-16" id="loadMoreContainer" style="display: none;">
+    <button id="loadMoreBtn" onclick="handleLoadMore()" class="btn-primary text-white font-bold py-4 px-14 rounded-2xl shadow-xl text-lg hover:-translate-y-1 hover:shadow-2xl transition-all">إظهار المزيد</button>
+  </div>
+
+  <!-- Features -->
+  <div class="max-w-5xl mx-auto px-4 py-16 mb-10 border-t border-[var(--border)]">
+    <div class="text-center mb-12">
+      <h2 class="text-2xl md:text-3xl font-black text-[var(--text)]">لماذا نعتبر الأفضل</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-y-12 gap-x-8 text-center">
+      <div class="flex flex-col items-center">
+        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white mb-4 shadow-lg"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div>
+        <h3 class="text-lg font-black text-primary mb-2">الدفع</h3>
+        <p class="text-sm text-[var(--muted)] font-bold">الدفع عند الاستلام</p>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white mb-4 shadow-lg"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg></div>
+        <h3 class="text-lg font-black text-primary mb-2">مركز المساعدة</h3>
+        <p class="text-sm text-[var(--muted)] font-bold">دعم على مدار الساعة لةجربة تسوق ممتعة.</p>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white mb-4 shadow-lg"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg></div>
+        <h3 class="text-lg font-black text-primary mb-2">الضمان</h3>
+        <p class="text-sm text-[var(--muted)] font-bold">البيع بالضمان غايتنا</p>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white mb-4 shadow-lg"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg></div>
+        <h3 class="text-lg font-black text-primary mb-2">الجودة</h3>
+        <p class="text-sm text-[var(--muted)] font-bold">منتجات ُذو جودة عاليا </p>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white mb-4 shadow-lg"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>
+        <h3 class="text-lg font-black text-primary mb-2">التخزين</h3>
+        <p class="text-sm text-[var(--muted)] font-bold">التخزين�� في مستودعات عالية الجودة وتحترم شروط السلامد بامتياز</p>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white mb-4 shadow-lg"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg></div>
+        <h3 class="text-lg font-black text-primary mb-2">التوصيل</h3>
+        <p class="text-sm text-[var(--muted)] font-bold">التوصيل سريع والى 69 ولاية</p>
+      </div>
+    </div>
+  </div>
+
+
+
 
   <!-- السلة (Drawer) -->
-  <div id="cartDrawer" class="fixed inset-0 bg-slate-900/40 hidden z-50 flex justify-end backdrop-blur-sm transition-opacity">
-    <div class="bg-white w-full max-w-sm h-full shadow-2xl flex flex-col translate-x-full transition-transform duration-300" id="cartDrawerContent">
-      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-white">
+  <div id="cartDrawer" class="fixed inset-0 bg-slate-900/40 hidden z-50 backdrop-blur-sm transition-opacity">
+    <div class="bg-white w-full max-w-sm h-full shadow-2xl flex flex-col fixed left-0 top-0 -translate-x-full transition-transform duration-300" id="cartDrawerContent">
+      <div class="p-5 border-b flex items-center justify-between bg-white text-slate-900">
         <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <svg class="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
           سلة التسوق
         </h2>
-        <button id="closeCart" class="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+        <button id="closeCart" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
       </div>
       <div id="cartItemsList" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50"></div>
-      <div class="p-5 border-t border-slate-100 bg-white">
+      <div class="p-5 border-t bg-white shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
         <div class="flex justify-between items-center mb-4">
           <span class="text-slate-500 font-semibold">المجموع</span>
-          <span id="cartTotal" class="text-2xl font-bold text-slate-900">0 د.ج</span>
+          <span id="cartTotal" class="text-2xl font-black text-slate-900">0 د.ج</span>
         </div>
-        <button id="checkoutBtn" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl transition-shadow duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">إتمام الطلب</button>
+        <button id="checkoutBtn" class="w-full bg-primary text-white font-bold py-4 rounded-2xl hover:bg-red-800 transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-base">إتمام الطلب</button>
       </div>
     </div>
   </div>
@@ -98,56 +582,57 @@
   <!-- نموذج إتمام الطلب (Checkout Sheet on Mobile) -->
   <div id="checkoutOverlay" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex items-end sm:items-center justify-center backdrop-blur-sm p-0 sm:p-4 overflow-hidden">
     <div class="checkout-modal rounded-t-3xl sm:rounded-2xl w-full max-w-lg p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto transform translate-y-full transition-transform duration-300" id="checkoutModalContent">
-      <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-        <h2 class="text-2xl font-bold text-slate-900">معلومات التوصيل</h2>
-        <button id="cancelCheckoutHeader" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+      <div class="flex items-center justify-between mb-6 pb-4 border-b border-[var(--border)]">
+        <h2 class="text-2xl font-bold text-[var(--text)]">معلومات التوصيل</h2>
+        <button id="cancelCheckoutHeader" class="p-2 text-[var(--muted)] hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
       </div>
-      <form id="checkoutForm" class="space-y-4">
+      <div id="checkoutError" class="text-primary font-bold text-center mb-4 hidden bg-rose-50 p-3 rounded-lg text-sm border border-rose-100"></div>
+        <form id="checkoutForm" class="space-y-4">
         <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1.5">الاسم الكامل <span class="text-red-500">*</span></label>
+          <label class="block text-sm font-semibold text-[var(--text)] mb-1.5">الاسم الكامل <span class="text-red-500">*</span></label>
           <input type="text" id="custName" name="customer_name" required class="input-field" placeholder="مثال: محمد الأمين" />
         </div>
         <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1.5">رقم الهاتف <span class="text-red-500">*</span></label>
+          <label class="block text-sm font-semibold text-[var(--text)] mb-1.5">رقم الهاتف <span class="text-red-500">*</span></label>
           <input type="tel" id="custPhone" name="phone" required class="input-field text-left" dir="ltr" placeholder="0555 55 55 55" />
         </div>
         <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1.5">الولاية <span class="text-red-500">*</span></label>
-          <select id="custWilaya" name="wilaya_code" required class="input-field bg-white">
+          <label class="block text-sm font-semibold text-[var(--text)] mb-1.5">الولاية <span class="text-red-500">*</span></label>
+          <select id="custWilaya" name="wilaya_code" required class="input-field bg-[var(--surface)]">
             <option value="">-- اختر الولاية --</option>
           </select>
         </div>
         <div>
-          <label class="block text-sm font-semibold text-slate-700 mb-1.5">البلدية / العنوان <span class="text-red-500">*</span></label>
-          <select id="custCommune" name="commune" required class="input-field bg-white mb-3">
+          <label class="block text-sm font-semibold text-[var(--text)] mb-1.5">البلدية / العنوان <span class="text-red-500">*</span></label>
+          <select id="custCommune" name="commune" required class="input-field bg-[var(--surface)] mb-3">
             <option value="">-- اختر البلدية --</option>
           </select>
           <input type="text" id="custAddress" name="address" required class="input-field" placeholder="الحي، الشارع..." />
         </div>
         
-        <div id="shippingOptionsBox" class="hidden mt-4 pt-4 border-t border-slate-100">
-          <p class="block text-sm font-semibold text-slate-700 mb-3">طريقة التوصيل <span class="text-red-500">*</span></p>
+        <div id="shippingOptionsBox" class="hidden mt-4 pt-4 border-t border-[var(--border)]">
+          <p class="block text-sm font-semibold text-[var(--text)] mb-3">طريقة التوصيل <span class="text-red-500">*</span></p>
           <div class="space-y-2">
-            <label id="labelShipHome" class="delivery-option flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" data-type="home">
-              <input type="radio" name="shipType" value="home" id="shipHome" class="w-4 h-4 text-slate-900 focus:ring-slate-900" />
+            <label id="labelShipHome" class="delivery-option flex items-center gap-3 p-3 border border-[var(--border)] rounded-xl cursor-pointer hover:bg-[var(--bg)] transition-colors" data-type="home">
+              <input type="radio" name="shipType" value="home" id="shipHome" class="w-4 h-4 text-primary focus:ring-red-500" />
               <div class="flex-1 flex justify-between items-center">
-                <span class="text-sm font-semibold text-slate-800">توصيل للمنزل</span>
-                <span id="priceHome" class="delivery-price text-sm font-bold text-slate-900">--</span>
+                <span class="text-sm font-semibold text-[var(--text)]">توصيل للمنزل</span>
+                <span id="priceHome" class="delivery-price text-sm font-bold text-primary">--</span>
               </div>
             </label>
-            <label id="labelShipDesk" class="delivery-option flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" data-type="desk">
-              <input type="radio" name="shipType" value="desk" id="shipDesk" class="w-4 h-4 text-slate-900 focus:ring-slate-900" />
+            <label id="labelShipDesk" class="delivery-option flex items-center gap-3 p-3 border border-[var(--border)] rounded-xl cursor-pointer hover:bg-[var(--bg)] transition-colors" data-type="desk">
+              <input type="radio" name="shipType" value="desk" id="shipDesk" class="w-4 h-4 text-primary focus:ring-red-500" />
               <div class="flex-1 flex justify-between items-center">
-                <span class="text-sm font-semibold text-slate-800">توصيل للمكتب (StopDesk)</span>
-                <span id="priceDesk" class="delivery-price text-sm font-bold text-slate-900">--</span>
+                <span class="text-sm font-semibold text-[var(--text)]">توصيل للمكتب (StopDesk)</span>
+                <span id="priceDesk" class="delivery-price text-sm font-bold text-primary">--</span>
               </div>
             </label>
           </div>
         </div>
 
         <div class="flex gap-3 pt-6">
-          <button type="submit" id="confirmOrderBtn" class="flex-1 bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl transition-shadow duration-300">تأكيد الطلب الآن</button>
-          <button type="button" id="cancelCheckout" class="px-6 py-3.5 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 hover:text-slate-900 transition-colors">إلغاء</button>
+          <button type="submit" id="confirmOrderBtn" class="flex-1 bg-red-700 text-white font-bold py-4 rounded-2xl hover:bg-red-800 transition-all shadow-lg hover:shadow-xl active:scale-[0.98] text-base">تأكيد الطلب الآن</button>
+          <button type="button" id="cancelCheckout" class="px-5 py-4 bg-[var(--surface)] text-[var(--muted)] font-bold rounded-2xl hover:bg-[var(--border)] hover:text-[var(--text)] transition-colors">إلغاء</button>
         </div>
       </form>
     </div>
@@ -159,6 +644,70 @@
   </div>
 
   <!-- شريط التنقل السفلي للهاتف -->
+  
+  <!-- التذييل (Footer) -->
+  <footer class="bg-[var(--surface)] border-t border-[var(--border)] pt-12 pb-24 md:pb-12 mt-16">
+    <div class="max-w-6xl mx-auto px-4">
+      
+      <!-- Logo -->
+      <div class="flex justify-center mb-10">
+        <a href="/" class="flex flex-col items-center">
+           <span class="text-4xl font-black text-primary tracking-tighter" style="font-family: Impact, sans-serif;">Kalkoul Store</span>
+           <span class="text-[9px] tracking-[0.2em] text-primary border-t border-primary mt-1 pt-1">W W W . O V A R O 2 8 . C O M</span>
+        </a>
+      </div>
+      
+      <div class="w-full h-px bg-[var(--surface)] mb-10"></div>
+      
+      <!-- 3 Columns -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" dir="rtl">
+        
+        <!-- Column 1 -->
+        <div class="flex flex-col items-center">
+          <h3 class="text-primary font-bold text-lg mb-2">عن المتجر</h3>
+          <div class="w-8 h-0.5 bg-primary mb-4"></div>
+          <ul class="flex flex-col gap-3">
+            <li><a href="/about-us.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">عن المتجر</a></li>
+            <li><a href="/payment-methods.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">طرق الدفع</a></li>
+            <li><a href="/shipping-delivery.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">الشحن والتسليم</a></li>
+          </ul>
+        </div>
+        
+        <!-- Column 2 -->
+        <div class="flex flex-col items-center">
+          <h3 class="text-primary font-bold text-lg mb-2">اتصل بنا</h3>
+          <div class="w-8 h-0.5 bg-primary mb-4"></div>
+          <ul class="flex flex-col gap-3">
+            <li><a href="/contact-us.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">اتصل بنا</a></li>
+            <li><a href="#" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">الأسئلة المتكررة</a></li>
+          </ul>
+        </div>
+        
+        <!-- Column 3 -->
+        <div class="flex flex-col items-center">
+          <h3 class="text-primary font-bold text-lg mb-2">الشروط والسياسات</h3>
+          <div class="w-8 h-0.5 bg-primary mb-4"></div>
+          <ul class="flex flex-col gap-3">
+            <li><a href="/terms.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">شروط الاستخدام</a></li>
+            <li><a href="/return-policy.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">سياسة الاستبدال والاسترجاع</a></li>
+            <li><a href="/privacy-policy.html" class="text-primary/80 hover:text-primary text-sm font-medium transition-colors">سياسة الخصوصية</a></li>
+          </ul>
+        </div>
+        
+      </div>
+      
+      <div id="footerSocialDivider" class="w-full h-px bg-[var(--surface)] my-10" hidden></div>
+      
+      
+      <!-- Social Media -->
+      <div id="footerSocialDivider" class="w-full h-px bg-[var(--surface)] my-10" hidden></div>
+      <div id="footerSocialSection" data-social-section hidden>
+        <div id="footerSocialLinks" class="justify-center gap-4 flex-wrap"></div>
+      </div>
+      
+    </div>
+  </footer>
+
   <nav class="md:hidden bottom-nav fixed bottom-0 left-0 w-full z-40 flex justify-around items-center h-16 shadow-[0_-4px_10px_-1px_rgba(0,0,0,0.05)]">
     <a href="/" class="nav-item active">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -171,27 +720,100 @@
     <button id="mobileNavCart" class="nav-item">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
       <span class="nav-label">السلة</span>
-      <span id="bottomCartCount" class="absolute top-2 right-4 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-md">0</span>
+      <span id="bottomCartCount" class="absolute top-2 right-4 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
     </button>
   </nav>
 
-  <script src="/js/social.js"></script>
-  <script src="/js/locations.js"></script>
-  <script src="/js/customer-conflict.js"></script>
-  <script src="/js/cart.js"></script>
-  <script src="/js/store.js?v=1790862808104"></script>
+  <script src="/js/cart.js?v=1790386050867"></script>
+  <script src="/js/social.js?v=20260928"></script>
+  <script src="/js/locations.js?v=1790328525707"></script>
+  <script src="/js/store2.js?v=20260928.3"></script>
   <script>
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    const currentYearEl = document.getElementById('currentYear');
+    if (currentYearEl) currentYearEl.textContent = new Date().getFullYear();
     // Set up event listeners for CSP
-    document.getElementById('mobileNavSearch').addEventListener('click', () => {
-      document.getElementById('searchFormDesktop').classList.remove('hidden');
-      document.getElementById('searchInput').focus();
-      window.scrollTo({top: 0, behavior: 'smooth'});
+
+    // Extra CSP listeners
+    const dSearch = document.getElementById('desktopSearchBtn');
+    const mSearch = document.getElementById('mobileNavSearch');
+    [dSearch, mSearch].forEach(btn => {
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const el = document.getElementById('attachedSearchBarContainer');
+          if (!el) { console.error('attachedSearchBarContainer not found!'); return; }
+          el.classList.toggle('hidden');
+          if(!el.classList.contains('hidden')) {
+             const inp = document.getElementById('attachedSearchInput');
+             if (inp) inp.focus();
+          }
+        });
+      }
     });
+    const dCart = document.getElementById('cartBtnDesktop');
+    if (dCart) dCart.addEventListener('click', () => { if(window.openCart) window.openCart(); });
+    
+    const dForm = document.getElementById('attachedSearchForm');
+    if (dForm) {
+      dForm.addEventListener('submit', (e) => {
+         e.preventDefault();
+         const v = document.getElementById('attachedSearchInput').value;
+         if(v) {
+            const url = new URL(window.location.origin + '/');
+            url.searchParams.set('q', v);
+            const currentParams = new URLSearchParams(window.location.search);
+            if (currentParams.has('store_slug')) url.searchParams.set('store_slug', currentParams.get('store_slug'));
+            if (currentParams.has('store_id')) url.searchParams.set('store_id', currentParams.get('store_id'));
+            window.location.href = url.toString();
+         }
+      });
+    }
+    
+    const pBtn = document.getElementById('sliderPrevBtn');
+    if (pBtn) pBtn.addEventListener('click', () => { if(window.prevSlide) window.prevSlide(); });
+    
+    const nBtn = document.getElementById('sliderNextBtn');
+    if (nBtn) nBtn.addEventListener('click', () => { if(window.nextSlide) window.nextSlide(true); });
+    
+    document.querySelectorAll('.slider-dot').forEach(dot => {
+       dot.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.getAttribute('data-index'));
+          if(!isNaN(idx) && window.goToSlide) window.goToSlide(idx);
+       });
+    });
+
+    
+    // منح النقر على بطاقات المنتجات بطريقة event delegation (بدلاً من onclick inline)
+    document.getElementById('productsGrid')?.addEventListener('click', (e) => {
+      const card = e.target.closest('[data-prod-url]');
+      if (card) {
+        window.location.href = card.getAttribute('data-prod-url');
+      }
+    });
+
     document.getElementById('mobileNavCart').addEventListener('click', () => {
       window.openCart();
     });
   </script>
+
+<!-- Conflict Modal: saved vs new customer data -->
+<div id="conflictModal" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; overflow-y:auto; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:99999; padding:1rem;">
+  <div style="background:white; border-radius:1rem; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); max-width:24rem; width:100%; padding:1.5rem; text-align:right; max-height:calc(100vh - 2rem); max-height:calc(100dvh - 2rem); overflow-y:auto;" dir="rtl">
+    <h3 style="font-size:1.125rem; font-weight:900; color:#0f172a; margin-bottom:0.5rem; margin-top:0;">اكتشفنا اختلافاً في بياناتك!</h3>
+    <p style="font-size:0.875rem; color:#64748b; font-weight:700; margin-bottom:1.25rem; margin-top:0;">يبدو أن المعلومات التي أدخلتها مختلفة عن طلب سابق. أي بيانات تريد استخدامها؟</p>
+    
+    <div style="margin-bottom:1.25rem;">
+      <div id="conflictOldBox" style="padding:0.75rem; border-radius:0.75rem; border:2px solid #e2e8f0; background:#f8fafc; font-size:0.875rem; font-weight:700; color:#334155; margin-bottom:0.75rem;"></div>
+      <div id="conflictNewBox" style="padding:0.75rem; border-radius:0.75rem; border:2px solid #e2e8f0; background:#f8fafc; font-size:0.875rem; font-weight:700; color:#334155;"></div>
+    </div>
+    
+    <div style="display:flex; gap:0.75rem;">
+      <button id="conflictUseOld" style="flex:1; padding:0.75rem; border-radius:0.75rem; background:#f1f5f9; color:#1e293b; font-weight:900; font-size:0.875rem; border:none; cursor:pointer;">استخدم القديمة</button>
+      <button id="conflictUseNew" style="flex:1; padding:0.75rem; border-radius:0.75rem; background:var(--theme-600); color:white; font-weight:900; font-size:0.875rem; border:none; cursor:pointer;">استخدم الجديدة</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 
