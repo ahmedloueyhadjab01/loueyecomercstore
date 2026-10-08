@@ -13,27 +13,33 @@
 
 <!-- Admin Modern Input Overrides -->
   <style>
-    #desktopSidebar.collapsed {
+    #desktopSidebar.collapsed:not(:hover) {
       width: 80px !important;
     }
-    #desktopSidebar.collapsed .tab-label,
-    #desktopSidebar.collapsed p {
+    #desktopSidebar.collapsed:not(:hover) .tab-label,
+    #desktopSidebar.collapsed:not(:hover) p {
       display: none !important;
     }
-    #desktopSidebar.collapsed .logo-full {
+    #desktopSidebar.collapsed:not(:hover) .logo-full {
       display: none !important;
     }
-    #desktopSidebar.collapsed .logo-mini {
+    #desktopSidebar.collapsed:not(:hover) .logo-mini {
       display: block !important;
     }
-    #desktopSidebar.collapsed .sidebar-val-btn {
+    #desktopSidebar.collapsed:not(:hover) .sidebar-val-btn {
       justify-content: center;
       padding-left: 0;
       padding-right: 0;
     }
-    #desktopSidebar.collapsed .sidebar-val-btn span:first-child {
+    #desktopSidebar.collapsed:not(:hover) .sidebar-val-btn span:first-child {
       margin-left: 0 !important;
       margin-right: 0 !important;
+    }
+    
+    /* Smooth width transitions and text clipping to make the hover effect beautiful */
+    #desktopSidebar {
+      white-space: nowrap;
+      overflow-x: hidden;
     }
   .field {
     border: 1px solid #e2e8f0 !important;
@@ -1786,5 +1792,6 @@
   <script src="/js/admin.js?v=20260928"></script>
 </body>
 </html>
+
 
 
