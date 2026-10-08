@@ -18,7 +18,7 @@
       }
       
       #desktopSidebar.collapsed {
-        width: 80px !important;
+        width: 80px !important; box-shadow: none !important;
       }
       
       #desktopSidebar.collapsed .logo-full { display: none !important; }
@@ -370,7 +370,7 @@
           <!-- Mobile Sidebar Overlay & Menu -->
           <div id="mobileSidebarOverlay" class="fixed inset-0 bg-slate-900/40 z-[60] md:hidden backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" onclick="toggleMobileMenu(false)"></div>
           
-          <div id="mobileSidebarMenu" class="fixed top-0 right-0 z-[70] w-72 h-full bg-[#0f172a] flex flex-col shadow-[-10px_0_40px_rgba(0,0,0,0.5)] overflow-y-auto md:hidden transform translate-x-full transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]">
+          <div id="mobileSidebarMenu" class="fixed top-0 right-0 z-[70] w-72 h-full bg-[#0f172a] flex flex-col  overflow-y-auto md:hidden transform translate-x-full transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]">
             <div class="p-6 border-b border-slate-800 flex justify-between items-center text-white">
               <span class="font-black text-2xl tracking-tighter">Kalkoul<span class="text-blue-500">.</span></span>
               <button onclick="toggleMobileMenu(false)" class="text-3xl font-black text-slate-400 hover:text-rose-500 transition-colors leading-none" title="إغلاق">&times;</button>
