@@ -818,7 +818,7 @@ async function loadProducts() {
   }
 
   table.innerHTML = `
- <table class="w-full text-sm min-w-[1000px]">
+ <table class="w-full text-xs sm:text-sm">
  <thead class="bg-slate-50 text-slate-900/60">
  <tr>
  <th class="p-3 text-right">الصورة</th>
@@ -3177,8 +3177,8 @@ function renderDeliveryTable(rates) {
     tr.innerHTML = `
  <td class="p-2 text-sm text-slate-900/40">${String(r.wilaya_code).padStart(2, "0")}</td>
  <td class="p-2 font-bold">${escapeHtml(r.wilaya_name)}</td>
- <td class="p-2"><input type="number" min="0" step="10" data-code="${r.wilaya_code}" data-field="home_price" value="${r.home_price}" class="field px-2 py-1 text-sm w-28" /></td>
- <td class="p-2"><input type="number" min="0" step="10" data-code="${r.wilaya_code}" data-field="desk_price" value="${r.desk_price}" class="field px-2 py-1 text-sm w-28" /></td>
+ <td class="p-2"><input type="number" min="0" step="10" data-code="${r.wilaya_code}" data-field="home_price" value="${r.home_price}" class="field px-2 py-1 text-xs sm:text-sm w-20 sm:w-28" /></td>
+ <td class="p-2"><input type="number" min="0" step="10" data-code="${r.wilaya_code}" data-field="desk_price" value="${r.desk_price}" class="field px-2 py-1 text-xs sm:text-sm w-20 sm:w-28" /></td>
  `;
     tbody.appendChild(tr);
   }
