@@ -13,47 +13,76 @@
 
 <!-- Admin Modern Input Overrides -->
   <style>
-    #desktopSidebar.collapsed:not(:hover) {
-      width: 80px !important;
-    }
-    #desktopSidebar.collapsed:not(:hover) .tab-label,
-    #desktopSidebar.collapsed:not(:hover) .sidebar-val-btn span:last-child,
-    #desktopSidebar.collapsed:not(:hover) p {
-      display: none !important;
-      opacity: 0 !important;
-      width: 0 !important;
-      height: 0 !important;
-      overflow: hidden !important;
-      position: absolute !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-      font-size: 0 !important;
-      line-height: 0 !important;
-      padding: 0 !important;
-      margin: 0 !important;
-    }
-    #desktopSidebar.collapsed:not(:hover) .logo-full {
-      display: none !important;
-    }
-    #desktopSidebar.collapsed:not(:hover) .logo-mini {
-      display: block !important;
-    }
-    #desktopSidebar.collapsed:not(:hover) .sidebar-val-btn {
-      justify-content: center;
-      padding-left: 0;
-      padding-right: 0;
-    }
-    #desktopSidebar.collapsed:not(:hover) .sidebar-val-btn span:first-child {
-      margin-left: 0 !important;
-      margin-right: 0 !important;
-    }
-    
-    /* Smooth width transitions and text clipping to make the hover effect beautiful */
-    #desktopSidebar {
-      white-space: nowrap;
-      overflow-x: hidden;
-    }
-  .field {
+      #desktopSidebar {
+        white-space: nowrap;
+      }
+      
+      #desktopSidebar.collapsed {
+        width: 80px !important;
+      }
+      
+      #desktopSidebar.collapsed .logo-full { display: none !important; }
+      #desktopSidebar.collapsed .logo-mini { display: block !important; }
+      #desktopSidebar.collapsed p { display: none !important; }
+      
+      #desktopSidebar.collapsed .sidebar-val-btn {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+        position: relative;
+        overflow: visible !important;
+      }
+      
+      #desktopSidebar.collapsed .sidebar-val-btn span:first-child {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      
+      #desktopSidebar.collapsed .tab-label,
+      #desktopSidebar.collapsed .sidebar-val-btn span:last-child {
+        display: block !important;
+        position: absolute !important;
+        right: calc(100% + 14px) !important;
+        top: 50% !important;
+        transform: translateY(-50%) translateX(10px) !important;
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+        font-size: 0.8rem !important;
+        font-weight: 800 !important;
+        padding: 0.4rem 0.75rem !important;
+        border-radius: 0.5rem !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.05) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 100 !important;
+        width: auto !important;
+        height: auto !important;
+        line-height: normal !important;
+        margin: 0 !important;
+      }
+      
+      #desktopSidebar.collapsed .sidebar-val-btn:hover .tab-label,
+      #desktopSidebar.collapsed .sidebar-val-btn:hover span:last-child {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translateY(-50%) translateX(0) !important;
+      }
+      
+      #desktopSidebar.collapsed .tab-label::after,
+      #desktopSidebar.collapsed .sidebar-val-btn span:last-child::after {
+        content: "" !important;
+        position: absolute !important;
+        top: 50% !important;
+        right: -4px !important;
+        transform: translateY(-50%) !important;
+        border-width: 5px 0 5px 5px !important;
+        border-style: solid !important;
+        border-color: transparent transparent transparent #f8fafc !important;
+        display: block !important;
+      }
+    .field {
     border: 1px solid #e2e8f0 !important;
     border-radius: 0.75rem !important;
     background-color: #f8fafc !important;
