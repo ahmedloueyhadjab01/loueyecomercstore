@@ -578,10 +578,8 @@ document.getElementById('checkoutForm')?.addEventListener('submit', async (e) =>
       
       const wilayaNameOld = typeof Locations !== 'undefined' ? (Locations.getRate(savedC.wilaya_code)?.wilaya_name || savedC.wilaya_code) : savedC.wilaya_code;
       const wilayaNameNew = typeof Locations !== 'undefined' ? (Locations.getRate(currentWilaya)?.wilaya_name || currentWilaya) : currentWilaya;
-
-      if (oldBox) oldBox.innerHTML = '<span style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">📦 بيانات طلب سابق</span>' + escapeHtml(savedC.customer_name || '—') + ' — ' + escapeHtml(savedC.phone || '—') + '<br>ولاية ' + escapeHtml(wilayaNameOld) + ' - ' + escapeHtml(savedC.commune || '') + ' — ' + escapeHtml(savedC.address || '');
-      if (newBox) newBox.innerHTML = '<span style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px">✏️ البيانات الجديدة التي أدخلتها</span>' + escapeHtml(currentName || '—') + ' — ' + escapeHtml(currentPhone || '—') + '<br>ولاية ' + escapeHtml(wilayaNameNew) + ' - ' + escapeHtml(currentCommune) + ' — ' + escapeHtml(currentAddress);
-      
+      if (oldBox) oldBox.innerHTML = '<span style="font-size:11px;color:#64748b;font-weight:bold;display:block;margin-bottom:4px">البيانات السابقة المسجلة:</span><div style="color:#0f172a;font-weight:800;">' + escapeHtml(savedC.customer_name || '-') + ' (' + escapeHtml(savedC.phone || '-') + ')</div><div style="color:#475569;font-size:12px;margin-top:2px;">ولاية ' + escapeHtml(wilayaNameOld) + ' - ' + escapeHtml(savedC.commune || '') + ' - ' + escapeHtml(savedC.address || '') + '</div>';
+      if (newBox) newBox.innerHTML = '<span style="font-size:11px;color:#dc2626;font-weight:bold;display:block;margin-bottom:4px">البيانات الجديدة التي أدخلتها الآن:</span><div style="color:#0f172a;font-weight:800;">' + escapeHtml(currentName || '-') + ' (' + escapeHtml(currentPhone || '-') + ')</div><div style="color:#475569;font-size:12px;margin-top:2px;">ولاية ' + escapeHtml(wilayaNameNew) + ' - ' + escapeHtml(currentCommune) + ' - ' + escapeHtml(currentAddress) + '</div>';
       modal.style.display = 'flex';
       
       document.getElementById('conflictUseOld').onclick = async () => {
