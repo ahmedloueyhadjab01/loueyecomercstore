@@ -610,23 +610,48 @@
           <input type="text" id="custAddress" name="address" required class="input-field" placeholder="الحي، الشارع..." />
         </div>
         
-        <div id="shippingOptionsBox" class="hidden mt-4 pt-4 border-t border-[var(--border)]">
-          <p class="block text-sm font-semibold text-[var(--text)] mb-3">طريقة التوصيل <span class="text-red-500">*</span></p>
-          <div class="space-y-2">
-            <label id="labelShipHome" class="delivery-option flex items-center gap-3 p-3 border border-[var(--border)] rounded-xl cursor-pointer hover:bg-[var(--bg)] transition-colors" data-type="home">
-              <input type="radio" name="shipType" value="home" id="shipHome" class="w-4 h-4 text-primary focus:ring-red-500" />
+                <div id="shippingOptionsBox" class="mt-4 pt-4 border-t border-[var(--border)]">
+          <p class="block text-sm font-bold text-[var(--text)] mb-3 flex items-center justify-between">
+            <span>طريقة التوصيل ومكان الاستلام:</span>
+            <span id="selectWilayaNotice" class="text-xs text-amber-600 font-semibold">اختر الولاية لتحديد السعر</span>
+          </p>
+          <div class="space-y-2.5">
+            <label id="labelShipHome" class="delivery-option flex items-center gap-3 p-3.5 border-2 border-primary bg-red-50/40 rounded-xl cursor-pointer transition-all selected" data-type="home">
+              <input type="radio" name="shipType" value="home" id="shipHome" checked class="w-4 h-4 text-primary focus:ring-red-500" />
               <div class="flex-1 flex justify-between items-center">
-                <span class="text-sm font-semibold text-[var(--text)]">توصيل للمنزل</span>
-                <span id="priceHome" class="delivery-price text-sm font-bold text-primary">--</span>
+                <div>
+                  <span class="text-sm font-bold text-[var(--text)] block">توصيل لباب المنزل</span>
+                  <span class="text-xs text-[var(--muted)]">يصلك الطلب مباشرة إلى عنوانك</span>
+                </div>
+                <span id="priceHome" class="delivery-price text-sm font-black text-primary">-- د.ج</span>
               </div>
             </label>
-            <label id="labelShipDesk" class="delivery-option flex items-center gap-3 p-3 border border-[var(--border)] rounded-xl cursor-pointer hover:bg-[var(--bg)] transition-colors" data-type="desk">
+            <label id="labelShipDesk" class="delivery-option flex items-center gap-3 p-3.5 border-2 border-[var(--border)] rounded-xl cursor-pointer hover:bg-[var(--bg)] transition-all" data-type="desk">
               <input type="radio" name="shipType" value="desk" id="shipDesk" class="w-4 h-4 text-primary focus:ring-red-500" />
               <div class="flex-1 flex justify-between items-center">
-                <span class="text-sm font-semibold text-[var(--text)]">توصيل للمكتب (StopDesk)</span>
-                <span id="priceDesk" class="delivery-price text-sm font-bold text-primary">--</span>
+                <div>
+                  <span class="text-sm font-bold text-[var(--text)] block">استلام من المكتب (StopDesk)</span>
+                  <span class="text-xs text-[var(--muted)]">استلام من أقرب مكتب شحن لولايتك</span>
+                </div>
+                <span id="priceDesk" class="delivery-price text-sm font-black text-primary">-- د.ج</span>
               </div>
             </label>
+          </div>
+        </div>
+
+        <!-- ملخص السعر والتوصيل -->
+        <div id="checkoutSummaryBox" class="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+          <div class="flex justify-between text-sm text-slate-600 font-bold">
+            <span>مجموع المنتجات:</span>
+            <span id="checkoutSubtotal" class="text-slate-900 font-black">0 د.ج</span>
+          </div>
+          <div class="flex justify-between text-sm text-slate-600 font-bold">
+            <span>تكلفة التوصيل:</span>
+            <span id="checkoutDeliveryFee" class="text-primary font-black">--</span>
+          </div>
+          <div class="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-200">
+            <span>المجموع النهائي للدفع:</span>
+            <span id="checkoutGrandTotal" class="text-primary text-xl font-black">0 د.ج</span>
           </div>
         </div>
 

@@ -423,17 +423,22 @@ wilayaSelect?.addEventListener('change', async () => {
 
 document.querySelectorAll('.delivery-option').forEach((label) => {
   label.addEventListener('click', () => {
-    document.querySelectorAll('.delivery-option').forEach((l) => l.classList.remove('selected'));
-    label.classList.add('selected');
-    label.querySelector('input').checked = true;
+    document.querySelectorAll('.delivery-option').forEach((l) => {
+      l.classList.remove('selected', 'border-primary', 'bg-red-50/40');
+      l.classList.add('border-[var(--border)]');
+    });
+    label.classList.add('selected', 'border-primary', 'bg-red-50/40');
+    label.classList.remove('border-[var(--border)]');
+    const radio = label.querySelector('input');
+    if (radio) radio.checked = true;
     CURRENT_DELIVERY_TYPE = label.dataset.type;
     updateDeliveryPrices();
   });
 });
-document.querySelector('.delivery-option[data-type="home"]').classList.add('selected');
 
 function currentDeliveryPrice() {
-  const rate = Locations.getRate(wilayaSelect.value);
+  if (!wilayaSelect || !wilayaSelect.value) return 0;
+  const rate = typeof Locations !== 'undefined' ? Locations.getRate(wilayaSelect.value) : null;
   if (!rate) return 0;
   return CURRENT_DELIVERY_TYPE === 'desk' ? rate.desk_price : rate.home_price;
 }
@@ -441,56 +446,59 @@ function currentDeliveryPrice() {
 let CURRENT_DYNAMIC_SHIPPING = null;
 
 async function updateDeliveryPrices() {
-  const code = wilayaSelect.value;
-  const hint = document.getElementById('selectWilayaHint');
-  const storeId = CURRENT_STORE_ID || (Cart.get()[0] && Cart.get()[0].user_id);
-  if (!storeId) return;
+  const code = wilayaSelect ? wilayaSelect.value : '';
+  const notice = document.getElementById('selectWilayaNotice');
+  const storeId = CURRENT_STORE_ID || (Cart.get()[0] && Cart.get()[0].user_id) || 1;
   const subtotal = Cart.total();
 
   if (!code) {
     document.querySelectorAll('.delivery-option').forEach((label) => {
-      label.querySelector('.delivery-price').textContent = '—';
+      const priceEl = label.querySelector('.delivery-price');
+      if (priceEl) priceEl.textContent = '-- د.ج';
     });
-    hint.classList.remove('hidden');
+    if (notice) notice.classList.remove('hidden');
     CURRENT_DYNAMIC_SHIPPING = null;
     updateGrandTotal();
     return;
   }
 
-  hint.classList.add('hidden');
+  if (notice) notice.classList.add('hidden');
 
   try {
-    const homeRes = await fetch(`/api/shipping/calculate-cost?store_id=${storeId}&wilaya_code=${code}&delivery_type=home&subtotal=${subtotal}`);
-    const deskRes = await fetch(`/api/shipping/calculate-cost?store_id=${storeId}&wilaya_code=${code}&delivery_type=desk&subtotal=${subtotal}`);
+    const [homeRes, deskRes] = await Promise.all([
+      fetch(`/api/shipping/calculate-cost?store_id=${storeId}&wilaya_code=${code}&delivery_type=home&subtotal=${subtotal}`),
+      fetch(`/api/shipping/calculate-cost?store_id=${storeId}&wilaya_code=${code}&delivery_type=desk&subtotal=${subtotal}`)
+    ]);
     
-    if (!homeRes.ok || !deskRes.ok) throw new Error('تعذر حساب تكلفة التوصيل');
+    if (!homeRes.ok || !deskRes.ok) throw new Error('تعذر حساب سعر التوصيل');
     const homeData = await homeRes.json();
     const deskData = await deskRes.json();
 
     document.querySelectorAll('.delivery-option').forEach((label) => {
       const priceEl = label.querySelector('.delivery-price');
+      if (!priceEl) return;
       const isDesk = label.dataset.type === 'desk';
       const data = isDesk ? deskData : homeData;
       
       if (data.is_unavailable) {
-        priceEl.innerHTML = '<span class="text-primary-dark font-black">غير متاح</span>';
+        priceEl.innerHTML = '<span class="text-rose-600 font-bold">غير متوفر</span>';
       } else if (data.is_free) {
-        priceEl.innerHTML = '<span class="text-forest font-black">مجاني 🎉</span>';
+        priceEl.innerHTML = '<span class="text-emerald-600 font-black">مجاني 🎉</span>';
       } else {
         priceEl.textContent = money(data.price);
       }
     });
 
     const selectedData = CURRENT_DELIVERY_TYPE === 'desk' ? deskData : homeData;
-    if (selectedData.is_unavailable) throw new Error('التوصيل غير متاح إلى هذه الولاية');
-    CURRENT_DYNAMIC_SHIPPING = selectedData.price;
+    CURRENT_DYNAMIC_SHIPPING = selectedData && !selectedData.is_unavailable ? selectedData.price : 0;
   } catch (err) {
     // Fallback to static rates
-    const rate = Locations.getRate(code);
+    const rate = typeof Locations !== 'undefined' ? Locations.getRate(code) : null;
     document.querySelectorAll('.delivery-option').forEach((label) => {
       const priceEl = label.querySelector('.delivery-price');
+      if (!priceEl) return;
       if (!rate) {
-        priceEl.textContent = '—';
+        priceEl.textContent = '-- د.ج';
         return;
       }
       const price = label.dataset.type === 'desk' ? rate.desk_price : rate.home_price;
@@ -504,10 +512,27 @@ async function updateDeliveryPrices() {
 
 function updateGrandTotal() {
   const deliveryFee = CURRENT_DYNAMIC_SHIPPING !== null ? CURRENT_DYNAMIC_SHIPPING : currentDeliveryPrice();
-  const grand = Cart.total() + (deliveryFee || 0);
-  document.getElementById('cartTotal').textContent = money(grand);
-}
+  const subtotal = Cart.total();
+  const grand = subtotal + (deliveryFee || 0);
 
+  const cartTotalEl = document.getElementById('cartTotal');
+  if (cartTotalEl) cartTotalEl.textContent = money(grand);
+
+  const subtotalEl = document.getElementById('checkoutSubtotal');
+  if (subtotalEl) subtotalEl.textContent = money(subtotal);
+
+  const feeEl = document.getElementById('checkoutDeliveryFee');
+  if (feeEl) {
+    if (wilayaSelect && wilayaSelect.value && deliveryFee !== null) {
+      feeEl.textContent = deliveryFee === 0 ? 'مجاني 🎉' : money(deliveryFee);
+    } else {
+      feeEl.textContent = '-- د.ج';
+    }
+  }
+
+  const grandEl = document.getElementById('checkoutGrandTotal');
+  if (grandEl) grandEl.textContent = money(grand);
+}
 
 async function loadSavedCustomer() {
   try {
@@ -544,6 +569,7 @@ document.getElementById('checkoutBtn')?.addEventListener('click', async () => {
   document.getElementById('checkoutModalContent')?.classList.remove('translate-y-full');
   document.getElementById('checkoutOverlay').classList.remove('hidden');
 });
+document.getElementById('cancelCheckoutHeader')?.addEventListener('click', () => { document.getElementById('checkoutModalContent')?.classList.add('translate-y-full'); document.getElementById('checkoutOverlay').classList.add('hidden'); });
 document.getElementById('cancelCheckout')?.addEventListener('click', () => {
   document.getElementById('checkoutModalContent')?.classList.add('translate-y-full');
   document.getElementById('checkoutOverlay').classList.add('hidden');
