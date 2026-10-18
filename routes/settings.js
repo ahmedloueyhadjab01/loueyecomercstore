@@ -2,12 +2,36 @@ const { getTargetUserId } = require('../utils/store');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const db = require('../db');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requireActiveSubscription } = require('../middleware/auth');
 const { ensureFinancialArchive } = require('../db');
 
 const router = express.Router();
 
 const socialKeys = ['social_whatsapp', 'social_instagram', 'social_facebook', 'social_tiktok', 'social_telegram'];
+
+function isValidSocialUrl(key, val) {
+  if (!val) return true;
+  const str = String(val).trim();
+  if (str.length > 500) return false;
+  if (/[<>"'\s]/.test(str)) return false;
+  if (key === 'social_whatsapp') {
+    if (/^\+?[0-9]{6,20}$/.test(str)) return true;
+    try {
+      const u = new URL(str);
+      return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }
+  try {
+    const full = /^https?:\/\//i.test(str) ? str : `https://${str}`;
+    const u = new URL(full);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 
 // Ø¹Ø§Ù…: Ø¬Ù„Ø¨ Ø±ÙˆØ§Ø¨Ø· Ø§Ù„ØªÙˆØ§ØµÙ„ Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠ Ù„Ù…ØªØ¬Ø± Ù…Ø¹ÙŠÙ‘Ù† (?store_id=X)
 router.get('/social', async (req, res) => {
@@ -58,7 +82,7 @@ router.put('/social', requireAuth, async (req, res) => {
 // ØªØ§Ø¬Ø±: Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª (Ø­Ø°Ù Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ù…Ø¤Ø±Ø´ÙØ© + ØµÙØ± Ø§Ù„Ø£Ø±Ø´ÙŠÙ Ø§Ù„Ù…Ø§Ù„ÙŠ) - Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ØªØ§Ø¬Ø± ÙÙ‚Ø·
 
 
-router.post('/reset-stats', requireAuth, async (req, res) => {
+router.post('/reset-stats', requireAuth, requireActiveSubscription, async (req, res) => {
   const targetUserId = getTargetUserId(req.user);
   const { password } = req.body;
   if (!password) return res.status(400).json({ error: 'كلمة المرور مطلوبة' });
@@ -81,11 +105,11 @@ router.post('/reset-stats', requireAuth, async (req, res) => {
     });
     res.json({ success: true, message: 'تم تصفير الأرقام بنجاح.' });
   } catch (err) {
-    res.status(500).json({ error: 'خطأ: ' + err.message });
+    console.error('Reset error:', err); res.status(500).json({ error: 'تعذر تنفيذ العملية' });
   }
 });
 
-router.post('/reset-store', requireAuth, async (req, res) => {
+router.post('/reset-store', requireAuth, requireActiveSubscription, async (req, res) => {
   const targetUserId = getTargetUserId(req.user);
   const { password } = req.body;
   if (!password) return res.status(400).json({ error: 'كلمة المرور مطلوبة' });
@@ -123,13 +147,13 @@ router.post('/reset-store', requireAuth, async (req, res) => {
     });
     res.json({ success: true, message: 'تم تصفير المتجر بالكامل بنجاح.' });
   } catch (err) {
-    res.status(500).json({ error: 'خطأ: ' + err.message });
+    console.error('Reset error:', err); res.status(500).json({ error: 'تعذر تنفيذ العملية' });
   }
 });
 
 
 // ... 
-router.put("/", requireAuth, async (req, res) => {
+router.put("/", requireAuth, requireActiveSubscription, async (req, res) => {
   const { store_name, store_description, contact_email, currency, language } = req.body;
   const contact_phone = req.body.contact_phone ?? req.body.phone;
   try {
@@ -152,7 +176,7 @@ router.put("/", requireAuth, async (req, res) => {
 
     res.json({ success: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Settings error:', e); res.status(500).json({ error: 'حدث خطأ أثناء حفظ البيانات' });
   }
 });
 
@@ -162,17 +186,17 @@ router.get("/profile", requireAuth, async (req, res) => {
     const user = await db.get("SELECT name, email, store_name, store_slug FROM users WHERE id = $1", [req.user.id]);
     res.json(user);
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    console.error('Settings error:', e); res.status(500).json({ error: 'حدث خطأ أثناء حفظ البيانات' });
   }
 });
 
-router.put("/profile", requireAuth, async (req, res) => {
+router.put("/profile", requireAuth, requireActiveSubscription, async (req, res) => {
   const { name, store_name } = req.body;
   try {
     await db.query("UPDATE users SET name = COALESCE($1, name), store_name = COALESCE($2, store_name) WHERE id = $3", [name, store_name, req.user.id]);
     res.json({ success: true });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    console.error('Settings error:', e); res.status(500).json({ error: 'حدث خطأ أثناء حفظ البيانات' });
   }
 });
 
@@ -206,7 +230,7 @@ router.get('/theme', async (req, res) => {
   }); // default to rose-600
 });
 
-router.put('/theme', requireAuth, async (req, res) => {
+router.put('/theme', requireAuth, requireActiveSubscription, async (req, res) => {
   const { primary_color, theme_background, theme_bg_color } = req.body;
   
   if (theme_bg_color) {

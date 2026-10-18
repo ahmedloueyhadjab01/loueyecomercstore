@@ -321,8 +321,8 @@ async function loadProducts() {
 
 function escapeHtml(str) {
   const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  div.textContent = String(str ?? '');
+  return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function showToast(msg) {

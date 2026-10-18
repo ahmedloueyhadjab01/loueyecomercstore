@@ -4,15 +4,19 @@ const crypto = require('crypto');
  * Get dedicated encryption key from ENCRYPTION_KEY environment variable.
  * Independent of JWT_SECRET to ensure rotating JWT_SECRET does not invalidate encrypted data.
  */
+let devEphemeralKey = null;
+
 function getEncryptionKey() {
   const key = process.env.ENCRYPTION_KEY;
   if (!key || key.length < 32 || key.includes('replace_')) {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
       throw new Error('ENCRYPTION_KEY environment variable is required, must be at least 32 characters, and cannot be a placeholder in production.');
     }
-    // Only in local development, use an isolated development key
-    const devKey = 'dev_only_local_encryption_key_min_32_bytes_len!';
-    return crypto.createHash('sha256').update(devKey).digest();
+    // Only in local development, use an ephemeral key generated per process lifecycle
+    if (!devEphemeralKey) {
+      devEphemeralKey = crypto.randomBytes(32);
+    }
+    return devEphemeralKey;
   }
   return crypto.createHash('sha256').update(key).digest();
 }

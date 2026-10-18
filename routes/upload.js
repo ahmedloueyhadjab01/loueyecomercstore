@@ -70,7 +70,7 @@ const storage = multer.memoryStorage();
 const rawMulter = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 25 * 1024 * 1024, files: 20 },
+  limits: { fileSize: 8 * 1024 * 1024, files: 8 },
 });
 
 async function uploadFileBuffer(buffer, originalname, mimetype) {

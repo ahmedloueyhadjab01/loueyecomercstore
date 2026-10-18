@@ -158,12 +158,20 @@ if (process.env.DB_CLIENT !== 'sqlite' && process.env.DB_CLIENT !== 'sqlite3') {
     usePostgres = true;
     console.log('âœ… ØªÙ… Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ù‚Ø§Ø¹Ø¯Ø© Ø¨ÙŠØ§Ù†Ø§Øª PostgreSQL/Supabase.');
   } catch (err) {
-    // fallback to SQLite
+    if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
+      console.error('❌ خطأ فادح: فشل الاتصال بقاعدة بيانات PostgreSQL في بيئة الإنتاج:', err.message);
+      throw new Error('Fatal: PostgreSQL connection failed in production environment. SQLite fallback is disabled in production to prevent data loss: ' + err.message);
+    }
+    // fallback to SQLite in development
   }
 }
 
 // â”€â”€â”€ Ø¥Ø°Ø§ ÙØ´Ù„ PostgreSQLØŒ Ø§Ø³ØªØ®Ø¯Ù… SQLite Ø¯Ø§Ø¦Ù… Ø¹Ù„Ù‰ Ø§Ù„Ù‚Ø±Øµ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (!usePostgres) {
+  if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
+    console.error('❌ خطأ فادح: لا يمكن تشغيل الخادم على SQLite في بيئة الإنتاج.');
+    throw new Error('Fatal: SQLite fallback is forbidden in production environment.');
+  }
   try {
     pool = createSqlitePool();
     databaseMode = 'sqlite';

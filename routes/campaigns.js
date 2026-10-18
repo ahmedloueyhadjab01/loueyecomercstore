@@ -2,9 +2,9 @@ const { parseItems } = require('../utils/orderItems');
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireActiveSubscription } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
-const { normalizeSource, toMs, PLATFORMS } = require('../utils/source');
+const { normalizeSource, sanitizeUtm, toMs, PLATFORMS } = require('../utils/source');
 
 const router = express.Router();
 
@@ -252,7 +252,7 @@ router.get('/analytics', requireAuth, async (req, res) => {
       daily_trends: dailyTrends,
     });
   } catch (err) {
-    res.status(500).json({ error: 'حدث خطأ أثناء إعداد تقرير الحملات: ' + err.message });
+    console.error('Campaign analytics error:', err); res.status(500).json({ error: 'حدث خطأ أثناء إعداد تقرير الحملات' });
   }
 });
 
@@ -287,9 +287,9 @@ router.post('/track', trackLimiter, async (req, res) => {
     if (!sessionId || !/^[a-zA-Z0-9_\-.]{8,64}$/.test(sessionId)) {
       return res.status(400).json({ success: false, error: 'معرف الجلسة غير صالح' });
     }
-    const campaign = String(req.body.utm_campaign || '').trim().slice(0, 255);
-    const medium = String(req.body.utm_medium || '').trim().slice(0, 255);
-    const content = String(req.body.utm_content || '').trim().slice(0, 255);
+    const campaign = sanitizeUtm(req.body.utm_campaign, 100);
+    const medium = sanitizeUtm(req.body.utm_medium, 100);
+    const content = sanitizeUtm(req.body.utm_content, 100);
 
     // لا نحسب نفس الزائر مرتين في نفس الجلسة
     if (sessionId) {
@@ -368,7 +368,7 @@ router.get('/platform-live', requireAuth, async (req, res) => {
 });
 
 // تصفير عدّاد منصة واحدة (أو الكل) — يبدأ العدّ التلقائي من الصفر
-router.post('/platform-reset', requireAuth, async (req, res) => {
+router.post('/platform-reset', requireAuth, requireActiveSubscription, async (req, res) => {
   try {
     const src = req.body.source === 'all' ? 'all' : normalizeSource(req.body.source);
     if (!src) return res.status(400).json({ error: 'المنصة مطلوبة' });
@@ -379,7 +379,7 @@ router.post('/platform-reset', requireAuth, async (req, res) => {
     else await db.query('INSERT INTO settings (user_id, key, value) VALUES ($1, $2, $3)', [req.user.id, key, now]);
     res.json({ success: true, reset_at: Number(now) });
   } catch (err) {
-    res.status(500).json({ error: 'تعذر التصفير: ' + err.message });
+    console.error('Platform reset error:', err); res.status(500).json({ error: 'تعذر التصفير' });
   }
 });
 
@@ -387,6 +387,7 @@ router.post('/platform-reset', requireAuth, async (req, res) => {
 router.post(
   '/spend',
   requireAuth,
+  requireActiveSubscription,
   [
     body('campaign_name').trim().notEmpty().withMessage('اسم الحملة مطلوب'),
     body('spend_amount').isFloat({ min: 0.01 }).withMessage('المبلغ يجب أن يكون أكبر من 0'),
@@ -397,7 +398,9 @@ router.post(
       return res.status(400).json({ error: errors.array()[0].msg });
     }
 
-    const { campaign_name, source, spend_amount, spend_date, notes } = req.body;
+    const { spend_amount, spend_date, notes } = req.body;
+    const campaign_name = sanitizeUtm(req.body.campaign_name, 100);
+    const source = normalizeSource(req.body.source) || 'facebook';
     let date = spend_date;
     if (!date) {
       const dObj = new Date();
@@ -413,7 +416,7 @@ router.post(
 
       res.status(201).json({ success: true, id: result.rows[0].id });
     } catch (err) {
-      res.status(500).json({ error: 'تعذر تسجيل المصاريف: ' + err.message });
+      console.error('Spend insert error:', err); res.status(500).json({ error: 'تعذر تسجيل المصاريف' });
     }
   }
 );
@@ -422,6 +425,7 @@ router.post(
 router.put(
   '/spend/:id',
   requireAuth,
+  requireActiveSubscription,
   [
     body('campaign_name').trim().notEmpty().withMessage('اسم الحملة مطلوب'),
     body('spend_amount').isFloat({ min: 0.01 }).withMessage('المبلغ يجب أن يكون أكبر من 0'),
@@ -437,7 +441,9 @@ router.put(
       if (spend.user_id !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({ error: 'لا يمكنك تعديل سجل لا ينتمي لحسابك.' });
       }
-      const { campaign_name, source, spend_amount, spend_date, notes } = req.body;
+      const { spend_amount, spend_date, notes } = req.body;
+    const campaign_name = sanitizeUtm(req.body.campaign_name, 100);
+    const source = normalizeSource(req.body.source) || 'facebook';
       await db.query(
         `UPDATE campaign_ad_spend
             SET campaign_name = $1, source = $2, spend_amount = $3, spend_date = COALESCE($4, spend_date), notes = $5
@@ -446,13 +452,13 @@ router.put(
       );
       res.json({ success: true });
     } catch (err) {
-      res.status(500).json({ error: 'تعذر تعديل السجل: ' + err.message });
+      console.error('Spend update error:', err); res.status(500).json({ error: 'تعذر تعديل السجل' });
     }
   }
 );
 
 // 3. حذف سجل مصاريف إعلانية
-router.delete('/spend/:id', requireAuth, async (req, res) => {
+router.delete('/spend/:id', requireAuth, requireActiveSubscription, async (req, res) => {
   try {
     const spend = await db.get('SELECT user_id FROM campaign_ad_spend WHERE id = $1', [req.params.id]);
     if (!spend) return res.status(404).json({ error: 'السجل غير موجود' });

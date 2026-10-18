@@ -26,7 +26,8 @@ router.get('/settings', requireAuth, async (req, res) => {
     }
     res.json(config);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Shipping config error:', err);
+    res.status(500).json({ error: 'تعذر جلب إعدادات الشحن' });
   }
 });
 
@@ -163,7 +164,8 @@ router.get('/calculate-cost', async (req, res) => {
     const result = await ShippingService.calculateShippingCost(storeId, wilayaCode, delivery_type || 'home', orderSubtotal);
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Shipping config error:', err);
+    res.status(500).json({ error: 'تعذر جلب إعدادات الشحن' });
   }
 });
 

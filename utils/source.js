@@ -2,6 +2,13 @@
 // مثال: l.facebook.com / m.facebook.com / fb → facebook
 const PLATFORMS = ['facebook', 'instagram', 'tiktok', 'google', 'snapchat', 'youtube', 'whatsapp', 'telegram', 'other'];
 
+function sanitizeUtm(raw, maxLen = 100) {
+  if (!raw) return '';
+  const str = String(raw).trim().slice(0, maxLen);
+  // Allow only safe characters: letters, numbers, spaces, dots, dashes, underscores
+  return str.replace(/[^\w\-. ]/g, '').trim();
+}
+
 function normalizeSource(raw) {
   const s = String(raw || '').trim().toLowerCase();
   if (!s) return '';
@@ -13,7 +20,7 @@ function normalizeSource(raw) {
   if (/whatsapp|wa\.me/.test(s)) return 'whatsapp';
   if (/telegram|t\.me/.test(s)) return 'telegram';
   if (/google|gclid|adwords/.test(s)) return 'google';
-  return s.slice(0, 60);
+  return sanitizeUtm(s, 60);
 }
 
 // تحويل أي قيمة تاريخ من قاعدة البيانات إلى ميلي ثانية (SQLite يخزن UTC بدون Z)
@@ -25,4 +32,4 @@ function toMs(v) {
   return Date.parse(str) || 0;
 }
 
-module.exports = { normalizeSource, toMs, PLATFORMS };
+module.exports = { normalizeSource, sanitizeUtm, toMs, PLATFORMS };

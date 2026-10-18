@@ -3,7 +3,7 @@ const express = require('express');
 const slugify = require('slugify');
 const { body, validationResult } = require('express-validator');
 const db = require('../db');
-const { requireAuth, checkResourceOwnership } = require('../middleware/auth');
+const { requireAuth, checkResourceOwnership, requireActiveSubscription } = require('../middleware/auth');
 const upload = require('./upload');
 
 const router = express.Router();
@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
   if (store_id) {
     vendorId = parseInt(store_id, 10);
   } else if (store_slug) {
-    const vendor = await db.get('SELECT id FROM users WHERE store_slug = 1', [store_slug]);
+    const vendor = await db.get('SELECT id FROM users WHERE store_slug = $1', [store_slug]);
     if (vendor) vendorId = vendor.id;
   } else {
     const token = (req.cookies && req.cookies.token) || (req.get('authorization') && req.get('authorization').replace('Bearer ', ''));
@@ -66,6 +66,7 @@ router.get('/flat', requireAuth, async (req, res) => {
 router.post(
   '/',
   requireAuth,
+  requireActiveSubscription,
   upload.single('image'),
   [
     body('name').trim().isLength({ min: 1, max: 100 }).withMessage('اسم التصنيف مطلوب (حتى 100 حرف)'),
@@ -107,6 +108,7 @@ router.post(
 router.put(
   '/:id',
   requireAuth,
+  requireActiveSubscription,
   upload.single('image'),
   [body('name').trim().isLength({ min: 1, max: 100 })],
   async (req, res) => {
@@ -130,7 +132,7 @@ router.put(
 );
 
 // حذف تصنيف (وكل التصنيفات الفرعية بداخله تلقائيًا بسبب ON DELETE CASCADE)
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requireActiveSubscription, async (req, res) => {
   const category = await db.get('SELECT * FROM categories WHERE id = $1', [req.params.id]);
   if (!category) return res.status(404).json({ error: 'التصنيف غير موجود' });
   if (!checkResourceOwnership(category.user_id, req, res)) return;

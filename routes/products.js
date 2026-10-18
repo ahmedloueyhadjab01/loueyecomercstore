@@ -10,6 +10,28 @@ const router = express.Router();
 
 
 
+function sanitizeSingleImageUrl(clean) {
+  if (typeof clean !== 'string') return null;
+  const s = clean.trim();
+  if (!s || s.length > 500) return null;
+  if (/[<>"'\s]/.test(s)) return null;
+  if (s.startsWith('/uploads/')) {
+    const filename = s.slice('/uploads/'.length);
+    return /^[a-zA-Z0-9_\-.]+\.(jpg|jpeg|png|webp|gif|mp4|mov)$/i.test(filename) ? s : null;
+  }
+  if (s.startsWith('https://')) {
+    try {
+      const parsedUrl = new URL(s);
+      if (parsedUrl.protocol !== 'https:') return null;
+      const pathname = parsedUrl.pathname.toLowerCase();
+      return /\.(jpg|jpeg|png|webp|gif|mp4|mov)$/i.test(pathname) ? s : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 function sanitizeImageUrls(raw) {
   if (!raw) return [];
   let arr = [];
@@ -27,25 +49,16 @@ function sanitizeImageUrls(raw) {
     }
   }
 
-  return arr.filter((item) => {
-    if (typeof item !== 'string') return false;
-    const clean = item.trim();
-    if (!clean || clean.length > 500) return false;
-    if (clean.startsWith('/uploads/')) {
-      const filename = clean.slice('/uploads/'.length);
-      return /^[a-zA-Z0-9_\-.]+\.(jpg|jpeg|png|webp|gif|mp4|mov)$/i.test(filename);
-    }
-    if (clean.startsWith('https://')) {
-      try {
-        const parsedUrl = new URL(clean);
-        const pathname = parsedUrl.pathname.toLowerCase();
-        return /\.(jpg|jpeg|png|webp|gif|mp4|mov)$/i.test(pathname);
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  });
+  const result = [];
+  for (const item of arr) {
+    const valid = sanitizeSingleImageUrl(item);
+    if (valid) result.push(valid);
+  }
+  return result;
+}
+
+function escapeLike(str) {
+  return String(str || '').replace(/([%_\\])/g, '\\$1');
 }
 
 function normalizeColorCode(value) {
@@ -169,7 +182,7 @@ router.get('/', async (req, res) => {
   if (q && q.trim()) {
     const words = q.trim().split(/\s+/).filter(Boolean);
     for (const word of words) {
-      const term = `%${word}%`;
+      const term = `%${escapeLike(word)}%`;
       sql += ` AND (p.name ILIKE $${paramIdx} OR p.description ILIKE $${paramIdx} OR c.name ILIKE $${paramIdx} OR c.slug ILIKE $${paramIdx})`;
       params.push(term);
       paramIdx++;
@@ -268,8 +281,9 @@ router.post(
 
     if (hasVariants) {
       for (const v of variants) {
-        if (v.image && typeof v.image === 'string' && !imagePaths.includes(v.image)) {
-          imagePaths.push(v.image);
+        const cleanVImg = sanitizeSingleImageUrl(v.image);
+        if (cleanVImg && !imagePaths.includes(cleanVImg)) {
+          imagePaths.push(cleanVImg);
         }
       }
     }
@@ -315,7 +329,7 @@ router.post(
             const vColor = (v.color || '').trim();
             const vColorCode = normalizeColorCode(v.color_code);
             const vSize = (v.size || '').trim();
-            const vImage = (v.image || '').trim();
+            const vImage = sanitizeSingleImageUrl(v.image) || '';
             const vStock = Math.max(0, parseInt(v.stock, 10) || 0);
             const vCost = Math.max(0, parseFloat(v.cost_price) || 0);
 
@@ -484,7 +498,7 @@ router.post(
     const color = (req.body.color || '').trim();
     const color_code = normalizeColorCode(req.body.color_code);
     const size = (req.body.size || '').trim();
-    const image = (req.body.image || '').trim();
+    const image = sanitizeSingleImageUrl(req.body.image) || '';
     const label = (req.body.label || [color, size].filter(Boolean).join(' - ') || 'متغير جديد').trim();
 
     if (!label) {

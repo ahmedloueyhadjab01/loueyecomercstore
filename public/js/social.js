@@ -54,14 +54,36 @@ function extractHandle(key, value) {
   return null;
 }
 
+function escapeAttr(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function normalizeSocialUrl(key, value) {
   if (!value) return null;
+  const str = String(value).trim();
+  if (!str) return null;
   if (key === 'social_whatsapp') {
-    if (/^https?:\/\//i.test(value)) return value;
-    const digits = value.replace(/[^0-9]/g, '');
+    if (/^https?:\/\//i.test(str)) {
+      try {
+        const u = new URL(str);
+        return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : null;
+      } catch { return null; }
+    }
+    const digits = str.replace(/[^0-9]/g, '');
     return digits ? `https://wa.me/${digits}` : null;
   }
-  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  const full = /^https?:\/\//i.test(str) ? str : `https://${str}`;
+  try {
+    const u = new URL(full);
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : null;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchSocialLinks(storeId = null) {
@@ -125,7 +147,7 @@ function renderSocialIcons(container, links, { size = 'w-12 h-12' } = {}) {
     <div class="absolute inset-0 bg-slate-50/80 backdrop-blur-2xl border border-slate-200/80 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.06)]"></div>
     <div class="relative flex items-center justify-center gap-x-4 px-6 py-3">
       ${entries.map(e => `
-        <a href="${e.url}" target="_blank" rel="noopener" title="${e.label}" class="relative group cursor-pointer inline-block" style="text-decoration:none; outline:none;">
+        <a href="${escapeAttr(e.url)}" target="_blank" rel="noopener" title="${escapeAttr(e.label)}" class="relative group cursor-pointer inline-block" style="text-decoration:none; outline:none;">
           <div style="clip-path: url(#squircleClipCustomer)" class="w-16 h-16 ${SQUIRCLE_STYLES[e.key]} rounded-2xl flex items-center justify-center transform transition-all duration-300 ease-out hover:scale-110 hover:-translate-y-2">
             ${e.svg.replace('width="22" height="22"', 'style="width: 32px; height: 32px; color: white;"').replace('fill="currentColor"', 'fill="currentColor"')}
           </div>
