@@ -1,3 +1,4 @@
+const { decryptText } = require('../utils/crypto');
 const db = require('../db');
 
 class ShippingService {
@@ -20,6 +21,8 @@ class ShippingService {
         is_active: 1,
       };
     } else {
+      if (config.api_key) config.api_key = decryptText(config.api_key);
+      if (config.api_token) config.api_token = decryptText(config.api_token);
       const hp = parseFloat(config.flat_home_price); config.flat_home_price = isNaN(hp) ? 600 : hp;
       const dp = parseFloat(config.flat_desk_price); config.flat_desk_price = isNaN(dp) ? 350 : dp;
       const fst = parseFloat(config.free_shipping_threshold); config.free_shipping_threshold = isNaN(fst) ? 15000 : fst;

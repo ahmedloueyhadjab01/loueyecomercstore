@@ -99,13 +99,14 @@ const globalLimiter = rateLimit({
 app.use('/api/', globalLimiter);
 
 // ----- الملفات الثابتة (الواجهة الأمامية) -----
-app.use(express.static(path.join(__dirname, 'public')));
+// خدمة المرفوعات أولاً لتطبيق ترويسات الأمان الصارمة (nosniff و sandbox CSP) قبل أي مسار آخر
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads'), {
   setHeaders: (res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox;");
   }
 }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // مسارات وتوجيهات الرابطين المنفصلين: الزبون والبائع
 app.get('/seller', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));

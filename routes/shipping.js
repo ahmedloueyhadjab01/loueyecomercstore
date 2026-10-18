@@ -1,3 +1,4 @@
+const { encryptText } = require('../utils/crypto');
 const { parseItems } = require('../utils/orderItems');
 const express = require('express');
 const router = express.Router();
@@ -67,8 +68,8 @@ router.post('/settings', requireAuth, requireActiveSubscription, async (req, res
       [
         req.user.id,
         provider || 'manual',
-        api_key || null,
-        api_token || null,
+        api_key ? encryptText(api_key) : null,
+        api_token ? encryptText(api_token) : null,
         parseInt(from_wilaya_id, 10) || 16,
         from_commune || '',
         pricing_mode || 'flat',

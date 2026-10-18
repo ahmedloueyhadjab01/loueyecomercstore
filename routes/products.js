@@ -353,7 +353,17 @@ const name = req.body.name !== undefined ? req.body.name : product.name;
   if (req.body.existing_images) {
     try {
       const ext = JSON.parse(req.body.existing_images);
-      if (Array.isArray(ext)) images = ext;
+      if (Array.isArray(ext)) {
+        images = ext.filter((img) => {
+          if (typeof img !== 'string') return false;
+          const clean = img.trim();
+          const isLocalUpload = clean.startsWith('/uploads/');
+          const isRemoteHttp = clean.startsWith('http://') || clean.startsWith('https://');
+          if (!isLocalUpload && !isRemoteHttp) return false;
+          const cleanPath = clean.split('?')[0].toLowerCase();
+          return /\.(jpg|jpeg|png|webp|gif|mp4|mov)$/i.test(cleanPath);
+        });
+      }
     } catch {}
   }
   if (req.files && req.files.length) {

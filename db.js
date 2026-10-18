@@ -281,7 +281,8 @@ async function initDb() {
       id SERIAL PRIMARY KEY,
       username VARCHAR(255) UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      password_changed_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -547,6 +548,14 @@ async function initDb() {
   `;
 
   await pool.query(schemaSql);
+
+  try {
+    if (databaseMode === 'postgres') {
+      await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ;');
+    } else {
+      await pool.query('ALTER TABLE users ADD COLUMN password_changed_at TEXT;');
+    }
+  } catch (e) {}
 
   try {
     if (databaseMode === 'postgres') {

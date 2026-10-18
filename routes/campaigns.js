@@ -260,7 +260,7 @@ router.get('/analytics', requireAuth, async (req, res) => {
 // ------------------------------------------------------------------
 // تتبع الزيارات القادمة من الإعلانات (عام - يُستدعى من واجهة الزبون)
 // ------------------------------------------------------------------
-const trackLimiter = rateLimit({ windowMs: 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false });
+const trackLimiter = rateLimit({ windowMs: 60 * 1000, max: 15, standardHeaders: true, legacyHeaders: false });
 
 async function resolveStoreId(raw) {
   const v = String(raw ?? 'default').trim();
@@ -283,7 +283,10 @@ router.post('/track', trackLimiter, async (req, res) => {
     if (!storeId) return res.json({ success: false });
 
     const source = normalizeSource(req.body.utm_source) || 'direct';
-    const sessionId = String(req.body.session_id || '').slice(0, 100);
+    const sessionId = String(req.body.session_id || '').trim().slice(0, 64);
+    if (!sessionId || !/^[a-zA-Z0-9_\-.]{8,64}$/.test(sessionId)) {
+      return res.status(400).json({ success: false, error: 'معرف الجلسة غير صالح' });
+    }
     const campaign = String(req.body.utm_campaign || '').trim().slice(0, 255);
     const medium = String(req.body.utm_medium || '').trim().slice(0, 255);
     const content = String(req.body.utm_content || '').trim().slice(0, 255);

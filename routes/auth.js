@@ -175,7 +175,7 @@ router.put("/change-password", requireAuth, async (req, res) => {
     const match = await require("bcryptjs").compare(currentPassword, user.password_hash);
     if (!match) return res.status(400).json({ error: "كلمة المرور الحالية غير صحيحة" });
     const hash = await require("bcryptjs").hash(newPassword, 10);
-    await db.query("UPDATE public.users SET password_hash = $1 WHERE id = $2", [hash, req.user.id]);
+    await db.query("UPDATE public.users SET password_hash = $1, password_changed_at = CURRENT_TIMESTAMP WHERE id = $2", [hash, req.user.id]);
     res.clearCookie("token");
     res.json({ success: true, message: "تم تغيير كلمة المرور بنجاح. يرجى تسجيل الدخول مجدداً." });
   } catch(e) {

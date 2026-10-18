@@ -50,6 +50,15 @@ async function requireAuth(req, res, next) {
       return res.status(401).json({ error: 'المستخدم غير موجود أو تم حذفه.' });
     }
 
+    // إبطال الجلسات والتوكنات القديمة الصادرة قبل تاريخ تغيير كلمة المرور
+    if (user.password_changed_at && payload.iat) {
+      const pwdChangedTime = new Date(user.password_changed_at).getTime();
+      if (payload.iat * 1000 < pwdChangedTime - 1000) {
+        res.clearCookie('token');
+        return res.status(401).json({ error: 'انتهت صلاحية الجلسة بسبب تغيير كلمة المرور. الرجاء تسجيل الدخول مجدداً.' });
+      }
+    }
+
     const isExpired = isSubscriptionExpired(user);
 
     req.user = {
