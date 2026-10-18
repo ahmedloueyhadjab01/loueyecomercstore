@@ -24,10 +24,14 @@ const { requireAuth, getSubscriptionStatus } = require('./middleware/auth');
 
 const app = express();
 
-if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('change_this') || process.env.JWT_SECRET.length < 32)) {
-  throw new Error('JWT_SECRET must be a strong secret of at least 32 characters in production.');
+const weakSecrets = ['change_this', 'super_secure_random', 'replace_with_a_secure_random_string_at_least_32_characters'];
+const jwtSecret = process.env.JWT_SECRET || '';
+const isWeakJwt = !jwtSecret || jwtSecret.length < 32 || weakSecrets.some((w) => jwtSecret.includes(w));
+
+if (process.env.NODE_ENV === 'production' && isWeakJwt) {
+  throw new Error('JWT_SECRET must be a strong random secret of at least 32 characters in production and cannot contain placeholder values.');
 }
-if (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('change_this')) {
+if (isWeakJwt) {
   console.warn('\n⚠️  تحذير أمني: يرجى تعيين JWT_SECRET قوي وعشوائي في ملف .env قبل النشر الفعلي!\n');
 }
 
@@ -96,7 +100,12 @@ app.use('/api/', globalLimiter);
 
 // ----- الملفات الثابتة (الواجهة الأمامية) -----
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads'), {
+  setHeaders: (res) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox;");
+  }
+}));
 
 // مسارات وتوجيهات الرابطين المنفصلين: الزبون والبائع
 app.get('/seller', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));

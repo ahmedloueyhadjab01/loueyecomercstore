@@ -1,5 +1,14 @@
 const nodemailer = require('nodemailer');
 
+function sanitizeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function createTransporter() {
   // محاولة استخدام SMTP_* أولاً، ثم EMAIL_* للتوافق الخلفي
   const host = process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com';
@@ -47,7 +56,7 @@ async function sendOtpEmail(toEmail, otpCode, userName = 'مرحباً', type = 
     <div dir="rtl" style="font-family: 'Almarai', Arial, sans-serif; background-color: #FAF3E6; padding: 30px; color: #17241F;">
       <div style="max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 2px solid #17241F; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
         <h2 style="color: #1E6F54; text-align: center; margin-top: 0;">${title}</h2>
-        <p style="font-size: 15px; line-height: 1.6;">أهلاً <strong>${userName}</strong>،</p>
+        <p style="font-size: 15px; line-height: 1.6;">أهلاً <strong>${sanitizeHtml(userName)}</strong>،</p>
         <p style="font-size: 14px; line-height: 1.6; color: #444;">${bodyText}</p>
         
         <div style="text-align: center; margin: 25px 0;">

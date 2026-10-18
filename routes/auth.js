@@ -163,7 +163,12 @@ router.post("/logout", (req, res) => {
 
 router.put("/change-password", requireAuth, async (req, res) => {
   const { old_password: currentPassword, new_password: newPassword } = req.body;
-  if (!currentPassword || !newPassword) return res.status(400).json({ error: "الرجاء إدخال كلمة المرور الحالية والجديدة" });
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: "الرجاء إدخال كلمة المرور الحالية والجديدة" });
+  }
+  if (typeof newPassword !== 'string' || newPassword.length < 10) {
+    return res.status(400).json({ error: "يجب ألا تقل كلمة المرور الجديدة عن 10 أحرف" });
+  }
   try {
     const user = await db.get("SELECT password_hash FROM public.users WHERE id = $1", [req.user.id]);
     if (!user) return res.status(404).json({ error: "المستخدم غير موجود" });
@@ -171,9 +176,11 @@ router.put("/change-password", requireAuth, async (req, res) => {
     if (!match) return res.status(400).json({ error: "كلمة المرور الحالية غير صحيحة" });
     const hash = await require("bcryptjs").hash(newPassword, 10);
     await db.query("UPDATE public.users SET password_hash = $1 WHERE id = $2", [hash, req.user.id]);
-    res.json({ success: true });
+    res.clearCookie("token");
+    res.json({ success: true, message: "تم تغيير كلمة المرور بنجاح. يرجى تسجيل الدخول مجدداً." });
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    console.error("Change password error:", e.message);
+    res.status(500).json({ error: "تعذر تغيير كلمة المرور حالياً" });
   }
 });
 

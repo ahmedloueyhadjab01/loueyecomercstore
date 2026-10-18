@@ -114,8 +114,8 @@ function checkResourceOwnership(resourceUserId, req, res) {
     return false;
   }
   if (req.user.role === 'admin') return true; // المشرف يرى كل شيء
-  if (resourceUserId !== null && resourceUserId !== undefined && resourceUserId !== req.user.id) {
-    res.status(403).json({ error: 'هذا المورد لا ينتمي لحسابك.' });
+  if (resourceUserId === null || resourceUserId === undefined || resourceUserId !== req.user.id) {
+    res.status(403).json({ error: 'هذا المورد لا ينتمي لحسابك أو تابع لإدارة المنصة.' });
     return false;
   }
   return true;

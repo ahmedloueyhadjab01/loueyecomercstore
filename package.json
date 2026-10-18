@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "seed:delivery": "node scripts/seed_delivery_rates.js"
+    "seed:delivery": "node scripts/seed_delivery_rates.js",
+    "export:clean": "node scripts/export_clean_zip.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
@@ -22,7 +23,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "nodemailer": "^6.9.15",
+    "nodemailer": "^10.0.16",
     "pg": "^8.13.3",
     "slugify": "^1.6.6"
   },

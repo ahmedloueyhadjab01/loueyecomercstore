@@ -116,7 +116,7 @@ function buildPool(connectionString) {
 
   return new Pool({
     connectionString,
-    ssl: (isProduction || isRemoteDb) ? { rejectUnauthorized: false } : false,
+    ssl: (isProduction || isRemoteDb) ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' } : false,
   });
 }
 
@@ -608,8 +608,8 @@ async function initDb() {
   // Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø§Ù„Ù…Ø´Ø±Ù Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠ Ø¥Ù† Ù„Ù… ÙŠÙƒÙ† Ù…ÙˆØ¬ÙˆØ¯Ø§Ù‹
   const userCountRes = await pool.query('SELECT COUNT(*) AS c FROM users');
   if (parseInt(userCountRes.rows[0].c, 10) === 0) {
-    const defaultUsername = (process.env.ADMIN_USERNAME || 'kalkoul.dz').trim();
-    const defaultPassword = process.env.ADMIN_PASSWORD || 'kalkoul.dz28';
+    const defaultUsername = (process.env.ADMIN_USERNAME || '').trim();
+    const defaultPassword = process.env.ADMIN_PASSWORD || '';
     if (!defaultUsername || defaultPassword.length < 12) {
       throw new Error('Set ADMIN_USERNAME and an ADMIN_PASSWORD of at least 12 characters before initializing an empty database.');
     }

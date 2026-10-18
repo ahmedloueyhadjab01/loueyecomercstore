@@ -13,8 +13,11 @@ function escapeXml(str = '') {
 }
 
 function escapeCsv(str = '') {
-  const s = String(str).replace(/"/g, '""');
-  return `"${s}"`;
+  let s = String(str ?? '');
+  if (/^[=+\-@\t\r]/.test(s)) {
+    s = "'" + s;
+  }
+  return `"${s.replace(/"/g, '""')}"`;
 }
 
 function fullUrl(p) {

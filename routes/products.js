@@ -92,6 +92,8 @@ async function serializePublic(p) {
 // ------------------------------------------------------------------
 router.get('/', async (req, res) => {
   const { category_id, q, slug, limit = 60, offset = 0, store_id, store_slug } = req.query;
+  const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 60), 100);
+  const parsedOffset = Math.max(0, parseInt(offset, 10) || 0);
 
   let vendorId = null;
   if (store_id) {
@@ -136,7 +138,7 @@ router.get('/', async (req, res) => {
     }
   }
   sql += ` ORDER BY p.created_at DESC LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
-  params.push(Number(limit), Number(offset));
+  params.push(parsedLimit, parsedOffset);
 
   const products = await db.all(sql, params);
   const serialized = await Promise.all(products.map(serializePublic));
@@ -322,7 +324,20 @@ router.put('/:id', requireAuth, requireActiveSubscription, upload.array('images'
 
   if (!checkResourceOwnership(product.user_id, req, res)) return;
 
-  const name = req.body.name !== undefined ? req.body.name : product.name;
+  
+  if (req.body.price !== undefined) {
+    const numPrice = Number(req.body.price);
+    if (isNaN(numPrice) || numPrice < 0) {
+      return res.status(400).json({ error: 'سعر المنتج يجب أن يكون رقماً موجباً' });
+    }
+  }
+  if (req.body.compare_price !== undefined && req.body.compare_price !== null && req.body.compare_price !== '') {
+    const numCompare = Number(req.body.compare_price);
+    if (isNaN(numCompare) || numCompare < 0) {
+      return res.status(400).json({ error: 'سعر المقارنة يجب أن يكون رقماً موجباً' });
+    }
+  }
+const name = req.body.name !== undefined ? req.body.name : product.name;
   const description = req.body.description !== undefined ? req.body.description : product.description;
   const price = req.body.price !== undefined ? req.body.price : product.price;
   const compare_price = req.body.compare_price !== undefined ? req.body.compare_price : product.compare_price;
@@ -584,7 +599,11 @@ router.delete('/:id/variants/:variantId', requireAuth, requireActiveSubscription
   }
   
   if (variant.image) {
-    upload.deleteFiles([variant.image]);
+    const otherProduct = await db.get('SELECT id FROM products WHERE image = $1 OR images LIKE $2', [variant.image, '%' + variant.image + '%']);
+    const otherVariant = await db.get('SELECT id FROM product_variants WHERE id != $1 AND image = $2', [variant.id, variant.image]);
+    if (!otherProduct && !otherVariant) {
+      upload.deleteFiles([variant.image]);
+    }
   }
 
   await db.query('DELETE FROM product_variants WHERE id = $1', [req.params.variantId]);
@@ -614,7 +633,18 @@ router.delete('/:id', requireAuth, requireActiveSubscription, async (req, res) =
   await db.query('DELETE FROM products WHERE id = $1', [req.params.id]);
   
   if (imagesToDelete.length > 0) {
-    upload.deleteFiles(imagesToDelete);
+    const safeToDelete = [];
+    for (const imgUrl of imagesToDelete) {
+      if (!imgUrl) continue;
+      const otherProduct = await db.get('SELECT id FROM products WHERE id != $1 AND (image = $2 OR images LIKE $3)', [product.id, imgUrl, '%' + imgUrl + '%']);
+      const otherVariant = await db.get('SELECT id FROM product_variants WHERE product_id != $1 AND image = $2', [product.id, imgUrl]);
+      if (!otherProduct && !otherVariant) {
+        safeToDelete.push(imgUrl);
+      }
+    }
+    if (safeToDelete.length > 0) {
+      upload.deleteFiles(safeToDelete);
+    }
   }
   
   res.json({ success: true });
