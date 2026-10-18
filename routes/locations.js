@@ -81,7 +81,7 @@ router.put('/wilayas', requireAuth, requireAdmin, async (req, res) => {
     });
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'تعذر تحديث الأسعار: ' + err.message });
+    console.error('Update rates error:', err); res.status(500).json({ error: 'تعذر تحديث أسعار التوصيل' });
   }
 });
 

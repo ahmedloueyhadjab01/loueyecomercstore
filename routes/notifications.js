@@ -95,7 +95,7 @@ router.get('/', requireAuth, async (req, res) => {
       }))
     );
   } catch (err) {
-    res.status(500).json({ error: 'تعذر جلب الإشعارات: ' + err.message });
+    console.error('Get notifications error:', err); res.status(500).json({ error: 'تعذر جلب الإشعارات' });
   }
 });
 
@@ -124,7 +124,7 @@ router.patch('/:id/read', requireAuth, async (req, res) => {
       data: typeof updated.data === 'string' ? JSON.parse(updated.data || '{}') : (updated.data || {}),
     });
   } catch (err) {
-    res.status(500).json({ error: 'تعذر تحديث حالة الإشعار: ' + err.message });
+    console.error('Update notification error:', err); res.status(500).json({ error: 'تعذر تحديث حالة الإشعار' });
   }
 });
 
@@ -139,7 +139,7 @@ router.patch('/read-all', requireAuth, async (req, res) => {
 
     res.json({ success: true, updated: true });
   } catch (err) {
-    res.status(500).json({ error: 'تعذر تحديث جميع الإشعارات: ' + err.message });
+    console.error('Update all notifications error:', err); res.status(500).json({ error: 'تعذر تحديث الإشعارات' });
   }
 });
 
@@ -161,7 +161,7 @@ router.post('/register', requireAuth, async (req, res) => {
 
     res.json({ success: true, message: 'تم تسجيل جهاز الإشعارات بنجاح.' });
   } catch (err) {
-    res.status(500).json({ error: 'تعذر تسجيل جهاز الإشعارات: ' + err.message });
+    console.error('Register push token error:', err); res.status(500).json({ error: 'تعذر تسجيل جهاز الإشعارات' });
   }
 });
 
@@ -177,7 +177,7 @@ router.delete('/unregister', requireAuth, async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: 'تعذر حذف جهاز الإشعارات: ' + err.message });
+    console.error('Unregister push token error:', err); res.status(500).json({ error: 'تعذر حذف جهاز الإشعارات' });
   }
 });
 
