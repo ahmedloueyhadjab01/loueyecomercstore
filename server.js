@@ -35,6 +35,11 @@ if (isWeakJwt) {
   console.warn('\n⚠️  تحذير أمني: يرجى تعيين JWT_SECRET قوي وعشوائي في ملف .env قبل النشر الفعلي!\n');
 }
 
+
+if (process.env.NODE_ENV === 'production' && (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32 || process.env.ENCRYPTION_KEY.includes('replace_'))) {
+  console.warn('\n⚠️  تنبيه أمني: يرجى تعيين ENCRYPTION_KEY عشوائي ومستقل (32 حرفاً على الأقل) في Render لتشفير بيانات الاعتماد بأمان.\n');
+}
+
 app.set('trust proxy', 1);
 
 // ----- أمان عام -----

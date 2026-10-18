@@ -114,9 +114,29 @@ function buildPool(connectionString) {
   const isProduction = process.env.NODE_ENV === 'production';
   const isRemoteDb = connectionString.includes('supabase') || connectionString.includes('render') || connectionString.includes('neon') || connectionString.includes('pooler');
 
+  let ssl = false;
+  if (isProduction || isRemoteDb) {
+    const caCert = process.env.DB_SSL_CA;
+    const caFile = process.env.DB_SSL_CA_PATH;
+    let ca = undefined;
+    if (caCert) {
+      ca = caCert;
+    } else if (caFile && fs.existsSync(caFile)) {
+      ca = fs.readFileSync(caFile, 'utf8');
+    }
+
+    if (ca) {
+      ssl = { rejectUnauthorized: true, ca };
+    } else if (process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true') {
+      ssl = { rejectUnauthorized: true };
+    } else {
+      ssl = { rejectUnauthorized: false };
+    }
+  }
+
   return new Pool({
     connectionString,
-    ssl: (isProduction || isRemoteDb) ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' } : false,
+    ssl,
   });
 }
 

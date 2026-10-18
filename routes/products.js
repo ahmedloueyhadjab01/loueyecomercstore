@@ -10,6 +10,44 @@ const router = express.Router();
 
 
 
+function sanitizeImageUrls(raw) {
+  if (!raw) return [];
+  let arr = [];
+  if (Array.isArray(raw)) {
+    arr = raw;
+  } else if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) arr = parsed;
+      else if (typeof parsed === 'string') arr = [parsed];
+    } catch {
+      if (raw.trim().startsWith('/uploads/') || raw.trim().startsWith('https://')) {
+        arr = [raw.trim()];
+      }
+    }
+  }
+
+  return arr.filter((item) => {
+    if (typeof item !== 'string') return false;
+    const clean = item.trim();
+    if (!clean || clean.length > 500) return false;
+    if (clean.startsWith('/uploads/')) {
+      const filename = clean.slice('/uploads/'.length);
+      return /^[a-zA-Z0-9_\-.]+\.(jpg|jpeg|png|webp|gif|mp4|mov)$/i.test(filename);
+    }
+    if (clean.startsWith('https://')) {
+      try {
+        const parsedUrl = new URL(clean);
+        const pathname = parsedUrl.pathname.toLowerCase();
+        return /\.(jpg|jpeg|png|webp|gif|mp4|mov)$/i.test(pathname);
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+}
+
 function normalizeColorCode(value) {
   const colorCode = String(value ?? '').trim();
   return /^#[0-9a-f]{6}$/i.test(colorCode) ? colorCode : '';
@@ -224,12 +262,8 @@ router.post(
     let imagePaths = (req.files || []).map((f) => f.url || `/uploads/${f.filename}`);
 
     if (req.body.existing_images) {
-      try {
-        const extImgs = JSON.parse(req.body.existing_images);
-        if (Array.isArray(extImgs)) {
-          imagePaths = [...new Set([...imagePaths, ...extImgs])];
-        }
-      } catch {}
+      const extImgs = sanitizeImageUrls(req.body.existing_images);
+      imagePaths = [...new Set([...imagePaths, ...extImgs])];
     }
 
     if (hasVariants) {
@@ -351,20 +385,7 @@ const name = req.body.name !== undefined ? req.body.name : product.name;
 
   let images = typeof product.images === 'string' ? JSON.parse(product.images || '[]') : (product.images || []);
   if (req.body.existing_images) {
-    try {
-      const ext = JSON.parse(req.body.existing_images);
-      if (Array.isArray(ext)) {
-        images = ext.filter((img) => {
-          if (typeof img !== 'string') return false;
-          const clean = img.trim();
-          const isLocalUpload = clean.startsWith('/uploads/');
-          const isRemoteHttp = clean.startsWith('http://') || clean.startsWith('https://');
-          if (!isLocalUpload && !isRemoteHttp) return false;
-          const cleanPath = clean.split('?')[0].toLowerCase();
-          return /\.(jpg|jpeg|png|webp|gif|mp4|mov)$/i.test(cleanPath);
-        });
-      }
-    } catch {}
+    images = sanitizeImageUrls(req.body.existing_images);
   }
   if (req.files && req.files.length) {
     const newImgs = req.files.map((f) => f.url || `/uploads/${f.filename}`);
