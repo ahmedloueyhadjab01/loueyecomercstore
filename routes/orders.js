@@ -685,7 +685,7 @@ router.get('/product-reports', requireAuth, async (req, res) => {
   try {
     const userId = getTargetUserId(req.user);
     const productId = req.query.product_id;
-    const months = parseInt(req.query.months) || 1;
+    const months = parseInt(req.query.months, 10) || 1;
     
     // Calculate the start date
     const startDate = new Date();
@@ -698,6 +698,7 @@ router.get('/product-reports', requireAuth, async (req, res) => {
       ordersQuery += " AND user_id = $2";
       params.push(userId);
     }
+    ordersQuery += " ORDER BY created_at ASC";
     
     const orders = await db.all(ordersQuery, params);
     
@@ -706,16 +707,23 @@ router.get('/product-reports', requireAuth, async (req, res) => {
     let totalRevenue = 0;
     let totalCogs = 0;
     let totalUnits = 0;
-    let totalShippingLosses = 0; // For returned orders
+    let totalShippingLosses = 0;
     let totalDelivered = 0;
     let totalReturned = 0;
+    let totalPending = 0;
+    let totalPendingProfit = 0;
     
     for (const o of orders) {
-      const isDelivered = o.status === 'تم التوصيل';
-      const isReturned = ['مسترجع', 'ملغاة', 'في الانتظار'].includes(o.status) && o.shipping_cost_incurred == 1; // Simplified return logic
+      const isDelivered = ['تم التسليم', 'تم التوصيل'].includes(o.status);
+      const isReturned = ['مسترجع', 'ملغاة', 'ملغي', 'تعذر التوصيل'].includes(o.status);
+      const isPending = ['قيد المعالجة', 'تم التأكيد', 'تم الإرسال', 'في الطريق', 'في الانتظار'].includes(o.status);
       
       let items = [];
-      try { items = JSON.parse(o.items || "[]"); } catch (e) { console.error('Ignored Error:', e.message); }
+      try {
+        items = typeof o.items === 'string' ? JSON.parse(o.items || "[]") : (Array.isArray(o.items) ? o.items : []);
+      } catch (e) {
+        items = [];
+      }
       
       let orderHasProduct = false;
       let productQty = 0;
@@ -723,7 +731,7 @@ router.get('/product-reports', requireAuth, async (req, res) => {
       let productCogs = 0;
       
       for (const item of items) {
-        if (!productId || productId === 'all' || item.id == productId) {
+        if (!productId || productId === 'all' || String(item.id) === String(productId)) {
           orderHasProduct = true;
           const qty = Number(item.qty) || 0;
           const cost = Number(item.cost_price) || 0;
@@ -744,13 +752,29 @@ router.get('/product-reports', requireAuth, async (req, res) => {
         } else if (isReturned) {
           totalReturned++;
           const lostShipping = Number(o.shipping_cost_actual || o.delivery_price) || 0;
-          // If we filter by product, we approximate shipping loss share
-          const share = (items.length > 0) ? (productQty / items.reduce((acc, i) => acc + (Number(i.qty)||0), 0)) : 1;
+          const totalOrderQty = items.reduce((acc, i) => acc + (Number(i.qty) || 0), 0);
+          const share = totalOrderQty > 0 ? (productQty / totalOrderQty) : 1;
           totalShippingLosses += (lostShipping * share);
+        } else if (isPending) {
+          totalPending++;
+          totalPendingProfit += (productRevenue - productCogs);
         }
         
-        // Timeline grouping (YYYY-MM-DD)
-        const dateKey = (o.created_at || '').substring(0, 10);
+        // Timeline grouping (YYYY-MM-DD) - safe date parsing for Date objects, strings, timestamps
+        let dateKey = '';
+        if (o.created_at) {
+          if (o.created_at instanceof Date) {
+            dateKey = !isNaN(o.created_at.getTime()) ? o.created_at.toISOString().slice(0, 10) : '';
+          } else if (typeof o.created_at === 'string') {
+            dateKey = o.created_at.slice(0, 10);
+          } else {
+            try {
+              const d = new Date(o.created_at);
+              if (!isNaN(d.getTime())) dateKey = d.toISOString().slice(0, 10);
+            } catch (_) {}
+          }
+        }
+        
         if (dateKey) {
           if (!timeline[dateKey]) timeline[dateKey] = { revenue: 0, cogs: 0, lost: 0, profit: 0 };
           if (isDelivered) {
@@ -758,7 +782,8 @@ router.get('/product-reports', requireAuth, async (req, res) => {
             timeline[dateKey].cogs += productCogs;
           } else if (isReturned) {
             const lostShipping = Number(o.shipping_cost_actual || o.delivery_price) || 0;
-            const share = (items.length > 0) ? (productQty / items.reduce((acc, i) => acc + (Number(i.qty)||0), 0)) : 1;
+            const totalOrderQty = items.reduce((acc, i) => acc + (Number(i.qty) || 0), 0);
+            const share = totalOrderQty > 0 ? (productQty / totalOrderQty) : 1;
             timeline[dateKey].lost += (lostShipping * share);
           }
           timeline[dateKey].profit = timeline[dateKey].revenue - timeline[dateKey].cogs - timeline[dateKey].lost;
@@ -774,6 +799,12 @@ router.get('/product-reports', requireAuth, async (req, res) => {
     };
     
     const netProfit = totalRevenue - totalCogs - totalShippingLosses;
+    const totalProcessed = totalDelivered + totalReturned;
+    const deliveryRate = totalProcessed > 0 
+      ? Math.round((totalDelivered / totalProcessed) * 100) 
+      : (totalDelivered > 0 ? 100 : 0);
+    const avgProfitPerOrder = totalDelivered > 0 ? Math.round(netProfit / totalDelivered) : 0;
+    const avgLossPerReturn = totalReturned > 0 ? Math.round(totalShippingLosses / totalReturned) : 0;
     
     res.json({
       success: true,
@@ -784,13 +815,18 @@ router.get('/product-reports', requireAuth, async (req, res) => {
         net_profit: netProfit,
         units_sold: totalUnits,
         delivered_count: totalDelivered,
-        returned_count: totalReturned
+        returned_count: totalReturned,
+        delivery_rate: deliveryRate,
+        avg_profit: avgProfitPerOrder,
+        avg_loss: avgLossPerReturn,
+        pending_orders: totalPending,
+        pending_profit: totalPendingProfit
       },
       chartData
     });
     
   } catch (err) {
-    console.error(err);
+    console.error('Error in /product-reports:', err);
     res.status(500).json({ error: 'Failed to generate report' });
   }
 });

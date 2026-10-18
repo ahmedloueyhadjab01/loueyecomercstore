@@ -3692,7 +3692,9 @@ async function loadProductReport() {
     const periodSelect = document.getElementById("reportPeriodSelect");
 
     if (
+      productSelect &&
       productSelect.options.length <= 1 &&
+      typeof ALL_PRODUCTS !== "undefined" &&
       ALL_PRODUCTS &&
       ALL_PRODUCTS.length > 0
     ) {
@@ -3704,57 +3706,92 @@ async function loadProductReport() {
       });
     }
 
-    const productId = productSelect.value;
-    const months = periodSelect.value;
+    const productId = productSelect ? productSelect.value : "all";
+    const months = periodSelect ? periodSelect.value : "1";
 
     const res = await fetch(
-      `/api/orders/product-reports?product_id=${productId}&months=${months}`,
+      `/api/orders/product-reports?product_id=${encodeURIComponent(productId)}&months=${encodeURIComponent(months)}`,
     );
     if (!res.ok) throw new Error("Failed to fetch reports");
     const data = await res.json();
 
-    document.getElementById("reportNetProfit").textContent =
-      money(data.stats.net_profit) + " د.ج";
-    document.getElementById("reportUnitsSold").textContent =
-      data.stats.units_sold;
-    document.getElementById("reportShippingLoss").textContent =
-      money(data.stats.shipping_losses) + " د.ج";
-    document.getElementById("reportOrderRatio").textContent =
-      `${data.stats.delivered_count} / ${data.stats.returned_count}`;
+    if (!data || !data.stats) throw new Error("Invalid report data");
 
+    // 1. تحديث المؤشرات الرئيسية (Primary KPIs)
+    const netProfitEl = document.getElementById("reportNetProfit");
+    if (netProfitEl) netProfitEl.textContent = money(data.stats.net_profit || 0) + " د.ج";
+
+    const unitsSoldEl = document.getElementById("reportUnitsSold");
+    if (unitsSoldEl) unitsSoldEl.textContent = data.stats.units_sold || 0;
+
+    const shippingLossEl = document.getElementById("reportShippingLoss");
+    if (shippingLossEl) shippingLossEl.textContent = money(data.stats.shipping_losses || 0) + " د.ج";
+
+    const orderRatioEl = document.getElementById("reportOrderRatio");
+    if (orderRatioEl) orderRatioEl.textContent = (data.stats.delivery_rate ?? 0) + "%";
+
+    // 2. تحديث مؤشرات الشريط الجانبي (Secondary KPIs)
+    const avgProfitEl = document.getElementById("reportAvgProfit");
+    if (avgProfitEl) avgProfitEl.textContent = money(data.stats.avg_profit || 0) + " د.ج";
+
+    const totalReturnsEl = document.getElementById("reportTotalReturns");
+    if (totalReturnsEl) totalReturnsEl.textContent = data.stats.returned_count || 0;
+
+    const pendingOrdersEl = document.getElementById("reportPendingOrders");
+    if (pendingOrdersEl) pendingOrdersEl.textContent = data.stats.pending_orders || 0;
+
+    // 3. تخزين القيم لنوافذ التفاصيل (Modals)
+    window._lastReportPendingProfit = money(data.stats.pending_profit || 0);
+    window._lastReportTotalUnits = data.stats.units_sold || 0;
+    window._lastReportAvgLoss = money(data.stats.avg_loss || 0);
+    window._lastReportSuccessRate = data.stats.delivery_rate || 0;
+
+    // 4. رسم المخطط البياني (Chart) بأمان
     const ctx = document.getElementById("productReportChart");
-    if (!ctx) return;
+    if (ctx && typeof Chart !== "undefined") {
+      if (productReportChartInstance) {
+        try { productReportChartInstance.destroy(); } catch (_) {}
+        productReportChartInstance = null;
+      }
 
-    if (productReportChartInstance) {
-      productReportChartInstance.destroy();
-    }
+      const labels = (data.chartData && data.chartData.labels && data.chartData.labels.length > 0)
+        ? data.chartData.labels
+        : ["لا توجد بيانات"];
+      const profits = (data.chartData && data.chartData.profits && data.chartData.profits.length > 0)
+        ? data.chartData.profits
+        : [0];
 
-    productReportChartInstance = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: data.chartData.labels,
-        datasets: [
-          {
-            label: "صافي الأرباح (د.ج)",
-            data: data.chartData.profits,
-            borderColor: "#1E6F54",
-            backgroundColor: "rgba(30, 111, 84, 0.1)",
-            borderWidth: 2,
-            fill: true,
-            tension: 0.3,
+      try {
+        productReportChartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "صافي الأرباح (د.ج)",
+                data: profits,
+                borderColor: "#1E6F54",
+                backgroundColor: "rgba(30, 111, 84, 0.1)",
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+              },
+            ],
           },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true },
-        },
-      },
-    });
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        });
+      } catch (chartErr) {
+        console.warn("Chart render issue:", chartErr);
+      }
+    }
   } catch (err) {
-    console.error(err);
+    console.error("loadProductReport error:", err);
     showToast("خطأ في تحميل التقارير", true);
   }
 }
@@ -3849,14 +3886,6 @@ function closeReportModal() {
   modalInner.classList.add('scale-95', 'opacity-0');
   setTimeout(() => { modal.classList.add('hidden'); }, 200);
 }
-
-// Override existing loadProductReport to inject new stats
-const originalLoadProductReportStr = loadProductReport.toString();
-// We will replace the inner text update to include the new DOM elements.
-// Actually, since I'm just injecting JS at the end, I can redefine loadProductReport.
-
-
-// Theme Settings
 
 // ---------- هوية المتجر وتغيير كلمة المرور ----------
 let themeAndSecurityListenersInitialized = false;
