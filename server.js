@@ -146,6 +146,14 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', database: require('./db').getMode() }));
 
+// معالج الصفحات والمسارات غير الموجودة 404
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'المسار البرمجي غير موجود (404)' });
+  }
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
 // معالج أخطاء موحّد
 app.use((err, req, res, next) => {
   if (err.message === 'Not allowed by CORS') {
