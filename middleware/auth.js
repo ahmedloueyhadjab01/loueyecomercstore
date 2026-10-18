@@ -59,6 +59,15 @@ async function requireAuth(req, res, next) {
       }
     }
 
+    // إبطال الجلسات والتوكنات القديمة الصادرة قبل آخر تسجيل خروج
+    if (user.last_logout_at && payload.iat) {
+      const logoutTime = new Date(user.last_logout_at).getTime();
+      if (payload.iat * 1000 < logoutTime - 1000) {
+        res.clearCookie('token');
+        return res.status(401).json({ error: 'تم تسجيل الخروج. الرجاء تسجيل الدخول مجدداً.' });
+      }
+    }
+
     const isExpired = isSubscriptionExpired(user);
 
     req.user = {

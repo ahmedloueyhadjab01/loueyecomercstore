@@ -155,7 +155,24 @@ router.get("/store-info/:identifier", async (req, res) => {
   });
 });
 
-router.post("/logout", (req, res) => {
+router.post("/logout", async (req, res) => {
+  try {
+    const authorization = req.get('authorization') || '';
+    const bearerToken = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : null;
+    const token = bearerToken || (req.cookies && req.cookies.token);
+    if (token) {
+      try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        if (payload && payload.id) {
+          await db.query('UPDATE public.users SET last_logout_at = CURRENT_TIMESTAMP WHERE id = $1', [payload.id]);
+        }
+      } catch (tokenErr) {
+        // إذا كان التوكن تالفاً أو منتهي الصلاحية أصلاً نتجاهل الخطأ ونواصل مسح الكوكي
+      }
+    }
+  } catch (err) {
+    // تجاهل أي خطأ لضمان إتمام تسجيل الخروج
+  }
   res.clearCookie("token");
   res.json({ success: true, message: "Logged out successfully" });
 });
