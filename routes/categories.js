@@ -52,7 +52,13 @@ router.get('/', async (req, res) => {
     categories = await db.all('SELECT * FROM categories WHERE user_id = $1', [vendorId]);
   } else {
     // إذا لم يُحدد متجر، نقتصر على المتجر الرئيسي بدلاً من كشف تصنيفات كل المتاجر
-    const defaultVendor = await db.get("SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+    let defaultVendor = null;
+    if (process.env.MAIN_STORE_USER_ID) {
+      defaultVendor = await db.get("SELECT id FROM users WHERE id = $1", [process.env.MAIN_STORE_USER_ID]);
+    }
+    if (!defaultVendor) {
+      defaultVendor = await db.get("SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+    }
     if (defaultVendor) {
       categories = await db.all('SELECT * FROM categories WHERE user_id = $1', [defaultVendor.id]);
     } else {
